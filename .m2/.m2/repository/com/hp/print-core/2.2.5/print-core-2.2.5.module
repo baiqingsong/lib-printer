@@ -1,0 +1,217 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.hp",
+    "module": "print-core",
+    "version": "2.2.5",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.3",
+      "buildId": "2friu5m4gzgvhkslhjkpehghf4"
+    }
+  },
+  "variants": [
+    {
+      "name": "thirdPartyReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.hp",
+          "module": "common-lib",
+          "version": {
+            "requires": "1.0.0.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "print-core-2.2.5.aar",
+          "url": "print-core-2.2.5.aar",
+          "size": 13306636,
+          "sha512": "27064ffda064d322d495151efeaeaa086f0b73a68cb215b153b9f92e1e336c0f2032dba3ef42aa551cb98f9acf2b1b4ed61b26d8a344cb92ab5c4a98f1c6b183",
+          "sha256": "90be094f3ff534a61a5df8cc012cb6f631adf29de99684a02d869a1028ea893d",
+          "sha1": "e6911353caad4cccccebf54ec50508effd1609cc",
+          "md5": "d9add9893edef109dcde99808aeaaa1c"
+        }
+      ]
+    },
+    {
+      "name": "thirdPartyReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.hp",
+          "module": "common-lib",
+          "version": {
+            "requires": "1.0.0.5"
+          }
+        },
+        {
+          "group": "androidx.core",
+          "module": "core-ktx",
+          "version": {
+            "requires": "1.3.2"
+          }
+        },
+        {
+          "group": "androidx.appcompat",
+          "module": "appcompat",
+          "version": {
+            "requires": "1.2.0"
+          }
+        },
+        {
+          "group": "androidx.lifecycle",
+          "module": "lifecycle-viewmodel-ktx",
+          "version": {
+            "requires": "2.2.0"
+          }
+        },
+        {
+          "group": "androidx.lifecycle",
+          "module": "lifecycle-service",
+          "version": {
+            "requires": "2.2.0"
+          }
+        },
+        {
+          "group": "androidx.lifecycle",
+          "module": "lifecycle-runtime-ktx",
+          "version": {
+            "requires": "2.2.0"
+          }
+        },
+        {
+          "group": "androidx.lifecycle",
+          "module": "lifecycle-livedata-ktx",
+          "version": {
+            "requires": "2.2.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.20"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.5.2"
+          }
+        },
+        {
+          "group": "androidx.room",
+          "module": "room-runtime",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "androidx.room",
+          "module": "room-ktx",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "com.hp.jipp",
+          "module": "jipp-core",
+          "version": {
+            "requires": "0.7.9"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp",
+          "version": {
+            "requires": "4.9.2"
+          }
+        },
+        {
+          "group": "com.squareup.retrofit2",
+          "module": "retrofit",
+          "version": {
+            "requires": "2.9.0"
+          }
+        },
+        {
+          "group": "com.squareup.retrofit2",
+          "module": "converter-gson",
+          "version": {
+            "requires": "2.9.0"
+          }
+        },
+        {
+          "group": "com.squareup.retrofit2",
+          "module": "converter-simplexml",
+          "version": {
+            "requires": "2.6.2"
+          },
+          "excludes": [
+            {
+              "group": "stax",
+              "module": "stax"
+            },
+            {
+              "group": "stax",
+              "module": "stax-api"
+            },
+            {
+              "group": "xpp3",
+              "module": "xpp3"
+            }
+          ]
+        },
+        {
+          "group": "org.simpleframework",
+          "module": "simple-xml",
+          "version": {
+            "requires": "2.3.1"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.9"
+          }
+        },
+        {
+          "group": "com.tom-roush",
+          "module": "pdfbox-android",
+          "version": {
+            "requires": "2.0.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "print-core-2.2.5.aar",
+          "url": "print-core-2.2.5.aar",
+          "size": 13306636,
+          "sha512": "27064ffda064d322d495151efeaeaa086f0b73a68cb215b153b9f92e1e336c0f2032dba3ef42aa551cb98f9acf2b1b4ed61b26d8a344cb92ab5c4a98f1c6b183",
+          "sha256": "90be094f3ff534a61a5df8cc012cb6f631adf29de99684a02d869a1028ea893d",
+          "sha1": "e6911353caad4cccccebf54ec50508effd1609cc",
+          "md5": "d9add9893edef109dcde99808aeaaa1c"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.dawn.libprinter"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="28"
+8-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="34" />
+9-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml
+10
+11    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+11-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:4:5-84
+11-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:4:22-81
+12    <uses-permission android:name="android.permission.USB_PERMISSION" />
+12-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:5:5-73
+12-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:5:22-70
+13    <uses-permission android:name="android.permission.INTERNET" />
+13-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:6:5-67
+13-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:6:22-64
+14
+15    <permission
+15-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:22:5-24:47
+16        android:name="com.dawn.libprinter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+16-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:23:9-81
+17        android:protectionLevel="signature" />
+17-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:24:9-44
+18
+19    <uses-permission android:name="com.dawn.libprinter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+19-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:26:5-97
+19-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:26:22-94
+20
+21    <application
+21-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:8:5-31:19
+22        android:allowBackup="true"
+22-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:9:9-35
+23        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+23-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:28:18-86
+24        android:debuggable="true"
+25        android:extractNativeLibs="false"
+26        android:label="@string/app_name"
+26-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:10:9-41
+27        android:supportsRtl="true"
+27-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:11:9-35
+28        android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
+28-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:12:9-65
+29        <activity
+29-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:14:9-21:20
+30            android:name="com.dawn.libprinter.MainActivity"
+30-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:15:13-41
+31            android:exported="true" >
+31-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:16:13-36
+32            <intent-filter>
+32-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:17:13-20:29
+33                <action android:name="android.intent.action.MAIN" />
+33-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:18:17-69
+33-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:18:25-66
+34
+35                <category android:name="android.intent.category.LAUNCHER" />
+35-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:19:17-77
+35-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:19:27-74
+36            </intent-filter>
+37        </activity>
+38
+39        <!--
+40            打印服务声明（运行在独立进程 :printer 中）。
+41            主进程通过 AIDL 与其通信，实现打印指令跨进程隔离。
+42        -->
+43        <service
+43-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:27:9-29:42
+44            android:name="com.dawn.printers.PrintService"
+44-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:28:13-58
+45            android:process=":printer" />
+45-->D:\lib\15.lib-printer\lib-printer\app\src\main\AndroidManifest.xml:29:13-39
+46
+47        <provider
+47-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+48            android:name="androidx.startup.InitializationProvider"
+48-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:25:13-67
+49            android:authorities="com.dawn.libprinter.androidx-startup"
+49-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:26:13-68
+50            android:exported="false" >
+50-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:27:13-37
+51            <meta-data
+51-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+52                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+52-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:30:17-75
+53                android:value="androidx.startup" />
+53-->[androidx.emoji2:emoji2:1.2.0] C:\Users\90449\.gradle\caches\transforms-3\e6cc2b2d8911a4684bdbf3fe7c74bb2d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:31:17-49
+54            <meta-data
+54-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\90449\.gradle\caches\transforms-3\eaf38ecd125200be5cc6930a21dfb71f\transformed\jetified-lifecycle-process-2.4.1\AndroidManifest.xml:31:13-33:52
+55                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+55-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\90449\.gradle\caches\transforms-3\eaf38ecd125200be5cc6930a21dfb71f\transformed\jetified-lifecycle-process-2.4.1\AndroidManifest.xml:32:17-78
+56                android:value="androidx.startup" />
+56-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\90449\.gradle\caches\transforms-3\eaf38ecd125200be5cc6930a21dfb71f\transformed\jetified-lifecycle-process-2.4.1\AndroidManifest.xml:33:17-49
+57        </provider>
+58    </application>
+59
+60</manifest>

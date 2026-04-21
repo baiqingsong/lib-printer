@@ -1,0 +1,5 @@
+com.dawn.libprinter.test.app-androidTest-0 D:\lib\15.lib-printer\lib-printer\app\build\generated\res\resValues\androidTest\debug
+com.dawn.libprinter.test.app-androidTest-1 D:\lib\15.lib-printer\lib-printer\app\build\generated\res\rs\androidTest\debug
+com.dawn.libprinter.test.app-mergeDebugAndroidTestResources-2 D:\lib\15.lib-printer\lib-printer\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.dawn.libprinter.test.app-mergeDebugAndroidTestResources-3 D:\lib\15.lib-printer\lib-printer\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.dawn.libprinter.test.app-merged_res-4 D:\lib\15.lib-printer\lib-printer\app\build\intermediates\merged_res\debugAndroidTest

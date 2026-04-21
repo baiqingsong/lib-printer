@@ -1,0 +1,6 @@
+-dontwarn com.saika.**
+-dontwarn com.hiti.**
+-dontwarn icod.**
+-dontwarn ZtlApi.**
+-dontwarn com.hp.**
+-dontwarn com.brother.**

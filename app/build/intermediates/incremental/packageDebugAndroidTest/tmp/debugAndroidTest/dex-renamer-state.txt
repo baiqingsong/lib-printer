@@ -1,0 +1,7 @@
+#Tue Apr 21 21:09:06 CST 2026
+base.0=D\:\\lib\\15.lib-printer\\lib-printer\\app\\build\\intermediates\\dex\\debugAndroidTest\\mergeProjectDexDebugAndroidTest\\0\\classes.dex
+base.1=D\:\\lib\\15.lib-printer\\lib-printer\\app\\build\\intermediates\\dex\\debugAndroidTest\\mergeProjectDexDebugAndroidTest\\14\\classes.dex
+path.0=0/classes.dex
+path.1=14/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex

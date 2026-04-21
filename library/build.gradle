@@ -1,0 +1,87 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+android {
+    compileSdk 34
+    namespace "com.dawn.printers"
+
+    defaultConfig {
+        minSdk 28
+        targetSdk 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        aidl = true
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.baiqingsong'
+                artifactId = 'lib-printer'
+                version = '1.0.0'
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.annotation:annotation:1.6.0'
+
+    // RxJava3（LLog / RxTask 依赖）
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
+
+    // Gson（LJsonUtil 依赖）
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // EventBus（PrintService 依赖）
+    implementation 'org.greenrobot:eventbus:3.3.1'
+
+    // ZTL 串口 API（内嵌 JAR，随库一起打包）
+    implementation fileTree(dir: 'libs', include: ['ZtlApi.jar', 'picasso-2.5.2.jar', 'printsdk2.2.1.0-api26.jar'])
+
+    // ====== 可选打印机 SDK（compileOnly：仅编译期，消费方按需自行添加） ======
+    // DNP 打印机 SDK（DNP_RX1 / DNP_620 / DNP_410）
+    compileOnly(name: 'DNPPrinterSDK-release', ext: 'aar')
+
+    // 打印机服务 SDK
+    compileOnly(name: 'printerService-release', ext: 'aar')
+
+    // ICOD 热敏打印机 SDK
+    compileOnly(name: 'icod_3.1.8_f', ext: 'jar')
+
+    // 兄弟打印机 SDK
+    compileOnly(name: 'lib-java-brsdk-common', ext: 'jar')
+    compileOnly(name: 'lib-android-brsdk-core', ext: 'aar')
+    compileOnly(name: 'lib-android-brsdk-print', ext: 'aar')
+
+    // 惠普激光打印机 SDK（本地 maven 仓库）
+    compileOnly "com.hp:common-lib:1.0.0.5"
+    compileOnly "com.hp:print-core:2.2.5"
+}
