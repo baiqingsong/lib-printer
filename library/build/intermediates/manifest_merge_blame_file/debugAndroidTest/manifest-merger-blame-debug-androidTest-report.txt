@@ -3,24 +3,24 @@
 3    package="com.dawn.printers.test" >
 4
 5    <uses-sdk
-5-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:5:5-74
+5-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:5:5-74
 6        android:minSdkVersion="28"
-6-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:5:15-41
+6-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:5:15-41
 7        android:targetSdkVersion="34" />
-7-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:5:42-71
+7-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:5:42-71
 8
 9    <instrumentation
-9-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:11:5-15:72
+9-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:11:5-15:72
 10        android:name="androidx.test.runner.AndroidJUnitRunner"
-10-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:11:22-76
+10-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:11:22-76
 11        android:functionalTest="false"
-11-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:14:22-52
+11-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:14:22-52
 12        android:handleProfiling="false"
-12-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:13:22-53
+12-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:13:22-53
 13        android:label="Tests for com.dawn.printers.test"
-13-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:15:22-70
+13-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:15:22-70
 14        android:targetPackage="com.dawn.printers.test" />
-14-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:12:22-68
+14-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:12:22-68
 15
 16    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 16-->[:library] D:\lib\15.lib-printer\lib-printer\library\build\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-84
@@ -38,14 +38,14 @@
 22-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:26:22-94
 23
 24    <application
-24-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:7:5-9:19
+24-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:7:5-9:19
 25        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 25-->[androidx.core:core:1.9.0] C:\Users\90449\.gradle\caches\transforms-3\31dd2fd25ee9a0eaa021c7cd8a443f22\transformed\core-1.9.0\AndroidManifest.xml:28:18-86
 26        android:debuggable="true"
 27        android:extractNativeLibs="false" >
 28        <uses-library android:name="android.test.runner" />
-28-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:8:9-60
-28-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest7534537193049817650.xml:8:23-57
+28-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:8:9-60
+28-->D:\lib\15.lib-printer\lib-printer\library\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest9141972947341068422.xml:8:23-57
 29
 30        <service
 30-->[:library] D:\lib\15.lib-printer\lib-printer\library\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:9-12:42

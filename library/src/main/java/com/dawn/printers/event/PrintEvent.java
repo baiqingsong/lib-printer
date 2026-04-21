@@ -5,6 +5,8 @@ import com.dawn.printers.PrinterType;
 import java.io.Serializable;
 
 public class PrintEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public enum EventType {
         INIT_PRINTER,// 初始化打印机
         GET_PRINTER_STATE,// 查询打印机状态

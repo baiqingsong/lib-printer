@@ -40,16 +40,34 @@ public class ICODManager extends PrinterManage {
 
     @Override
     public void startPrint(String imagePath, int printNum, boolean isCut) {
-        if(icodPrintUtil == null){
-            LLog.i("icodPrintUtil为空，无法打印");
+        if (icodPrintUtil == null) {
+            LLog.i("icodPrintUtil 为空，无法打印");
+            mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, false, "打印机未初始化");
+            return;
+        }
+        if (android.text.TextUtils.isEmpty(imagePath) || !new java.io.File(imagePath).exists()) {
+            LLog.e("打印图片不存在：" + imagePath);
+            mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, false, "图片不存在");
             return;
         }
         RxTask.runAsync(() -> {
             LLog.i("开始打印图片：" + imagePath);
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-            icodPrintUtil.printBitmapA3(bitmap);
-            icodPrintUtil.cutPaper();
-            mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, true, "打印完成");
+            if (bitmap == null) {
+                LLog.e("图片解码失败：" + imagePath);
+                mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, false, "图片解码失败");
+                return;
+            }
+            try {
+                icodPrintUtil.printBitmapA3(bitmap);
+                icodPrintUtil.cutPaper();
+                mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, true, "打印完成");
+            } catch (Exception e) {
+                LLog.e("ICOD 打印异常：" + e.getMessage());
+                mPrinterCallbackListener.getPrintResult(PrinterType.THERMAL, false, "打印异常：" + e.getMessage());
+            } finally {
+                if (!bitmap.isRecycled()) bitmap.recycle();
+            }
         });
     }
 

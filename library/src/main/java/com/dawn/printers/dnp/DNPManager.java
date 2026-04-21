@@ -183,12 +183,6 @@ public class DNPManager extends PrinterManage {
         }
     }
 
-    private static void recycleBitmapQuietly(Bitmap bitmap) {
-        if (bitmap != null && !bitmap.isRecycled()) {
-            bitmap.recycle();
-        }
-    }
-
     @Override
     public void getPrintCount() {
         if (mDNPPrintFactory == null) {

@@ -22,17 +22,23 @@ import ZtlApi.ZtlManager;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
- * 打印机工厂类
+ * 打印机门面（单例）。
+ * 通过 AIDL 与独立进程 {@link PrintService} 通信；打印结果以 {@link com.dawn.printers.event.ExternalPrintEvent} 形式
+ * 通过 EventBus 回调给调用方。
  */
 public class PrintFactory {
-    /*单例模式*/
-    private PrintFactory() {
-    }
-    private static PrintFactory instance;
+    private PrintFactory() {}
 
+    private static volatile PrintFactory instance;
+
+    /** 双重检查锁，保证多线程安全 */
     public static PrintFactory getInstance() {
         if (instance == null) {
-            instance = new PrintFactory();
+            synchronized (PrintFactory.class) {
+                if (instance == null) {
+                    instance = new PrintFactory();
+                }
+            }
         }
         return instance;
     }
@@ -73,51 +79,76 @@ public class PrintFactory {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            LLog.e("打印服务意外断开");
             if (iIPrinterAidlInterface != null) {
                 try {
                     iIPrinterAidlInterface.unregisterCallback(aidlCallback);
                 } catch (RemoteException e) {
-                    LLog.e("打印服务断开连接，注销回调失败：" + e.getMessage());
+                    LLog.e("注销回调失败：" + e.getMessage());
                 }
             }
             iIPrinterAidlInterface = null;
+            isServiceConnected = false;
         }
     };
 
-    private Context context;// 上下文
-    private boolean isServiceConnected = false;
+    private Context context;// ApplicationContext，防止 Activity 内存泄漏
+    private volatile boolean isServiceConnected = false;
     private Intent serviceIntent;
+
     /**
-     * 启动服务
+     * 启动并绑定打印服务。传入任意 Context 均可，内部自动取 applicationContext。
      */
-    public void startService(Context context){
-        this.context = context;
-        // 解绑旧服务防止重复绑定
-        try{
-            LLog.i("尝试解绑旧打印服务");
-            // 判断服务是否被注册
-            if(isServiceConnected) {
-                context.unbindService(connection);
+    public synchronized void startService(Context ctx) {
+        this.context = ctx.getApplicationContext();
+        // 先解绑旧连接，防止重复绑定
+        try {
+            if (isServiceConnected) {
+                LLog.i("解绑旧打印服务");
+                this.context.unbindService(connection);
+                isServiceConnected = false;
             }
-            if(serviceIntent != null){
-                context.stopService(serviceIntent);
+            if (serviceIntent != null) {
+                this.context.stopService(serviceIntent);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LLog.e("服务解绑失败：" + e.getMessage());
         }
 
         if (printPid != 0) {
             try {
-                LLog.i("尝试停止旧打印服务，PID：" + printPid);
-//                stopServiceByPid(context, printPid);
-                killProcessByPid(context, printPid);
+                LLog.i("终止旧打印进程，PID：" + printPid);
+                killProcessByPid(this.context, printPid);
                 printPid = 0;
             } catch (Exception e) {
-                LLog.e("DNPManage initPrint" + ": " + e.getMessage());
+                LLog.e("终止进程失败：" + e.getMessage());
             }
         }
-        serviceIntent = new Intent(context, PrintService.class);
-        isServiceConnected = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+
+        serviceIntent = new Intent(this.context, PrintService.class);
+        isServiceConnected = this.context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+        LLog.i("绑定打印服务，结果：" + isServiceConnected);
+    }
+
+    /**
+     * 主动停止打印服务并释放绑定。Activity/Application 销毁时调用。
+     */
+    public synchronized void stopService() {
+        disposePrintCountdown();
+        try {
+            if (isServiceConnected && context != null) {
+                context.unbindService(connection);
+                isServiceConnected = false;
+            }
+            if (serviceIntent != null && context != null) {
+                context.stopService(serviceIntent);
+                serviceIntent = null;
+            }
+        } catch (Exception e) {
+            LLog.e("stopService 失败：" + e.getMessage());
+        }
+        iIPrinterAidlInterface = null;
+        LLog.i("打印服务已停止");
     }
 
     /**
@@ -262,59 +293,75 @@ public class PrintFactory {
         }
     }
 
-    private long lastPrintTime = 0;// 上次打印时间
-    private PrintEvent lastPrintEvent = null;// 上次打印事件
-    private boolean needReprint = false;// 是否需要重打印
+    private volatile long lastPrintTime = 0;// 上次打印时间
+    private volatile PrintEvent lastPrintEvent = null;// 上次打印事件
+    private volatile boolean needReprint = false;// 是否需要重打印
+    /** 防止短时间内重复触发重启的标记 */
+    private volatile boolean isRestarting = false;
     /**
-     * 接收打印机服务返回的数据
+     * 接收打印服务回调数据，在 Binder 线程执行。
+     * 打印失败且在 15 秒快速失败窗口内 → 自动重启服务后重试（仅重试一次）。
      */
-    private void getPrinterServiceMsg(ExternalPrintEvent event){
-        if(event.getEvent() == ExternalPrintEvent.EventType.PRINT_IMAGE){
-            //判断当前返回结果和开始打印时间间隔少于5秒，并且失败了，则重启服务，然后再次打印
+    private void getPrinterServiceMsg(ExternalPrintEvent event) {
+        if (event.getEvent() == ExternalPrintEvent.EventType.PRINT_IMAGE) {
             disposePrintCountdown();
-            LLog.i("收到打印结果返回，状态：" + event.isStatus() + "，信息：" + event.getMsg());
-            long currentTime = System.currentTimeMillis();
-            if(lastPrintEvent != null && (currentTime - lastPrintTime) < 15000) {
-                LLog.i("打印结果返回时间：" + (currentTime - lastPrintTime) + "ms");
-                if (!event.isStatus()) {
-                    LLog.e("打印失败，尝试重启打印服务并重新打印");
-                    //重启服务
+            LLog.i("收到打印结果，状态：" + event.isStatus() + "，信息：" + event.getMsg());
+            long elapsed = System.currentTimeMillis() - lastPrintTime;
+            if (lastPrintEvent != null && elapsed < 15000 && !event.isStatus() && !isRestarting) {
+                LLog.e("打印快速失败（" + elapsed + "ms），重启服务后重试");
+                isRestarting = true;
+                needReprint = false; // 防止 repeatPrint 再次触发
+                if (context != null) {
                     startService(context);
-                    RxTask.postDelayed(()->{
-                        //重新打印
+                    RxTask.postDelayed(() -> {
+                        isRestarting = false;
                         LLog.i("重新发送打印指令");
                         sendPrintMsg(lastPrintEvent);
                     }, 5000);
-                    return;
                 }
-            }else{
+                return;
+            } else {
                 needReprint = false;
             }
-        } else if(event.getEvent() == ExternalPrintEvent.EventType.RESTART_SERVICE){
+        } else if (event.getEvent() == ExternalPrintEvent.EventType.RESTART_SERVICE) {
             repeatPrint();
             return;
         }
         EventBus.getDefault().post(event);
     }
 
-    private void repeatPrint(){
-        LLog.i("超时没有返回结果，打印服务请求重启服务");
-//        startService(context);
-        ZtlManager.GetInstance().setUSBtoPC(true);// 打开otg调试
-        RxTask.postDelayed(()->{
-            ZtlManager.GetInstance().setUSBtoPC(false);// 关闭otg调试
-            RxTask.postDelayed(()->{
-                //重新打印
-                if(needReprint){
-                    LLog.i("重新发送打印指令");
+    /**
+     * 打印超时处理：切换 OTG 模式以复位 USB 打印机，然后重新发送打印指令。
+     */
+    private void repeatPrint() {
+        if (isRestarting) {
+            LLog.i("已在重启中，跳过重复 repeatPrint");
+            return;
+        }
+        isRestarting = true;
+        LLog.i("打印超时，切换 OTG 复位后重试");
+        try {
+            ZtlManager.GetInstance().setUSBtoPC(true);
+        } catch (Exception e) {
+            LLog.e("OTG 开启失败：" + e.getMessage());
+        }
+        RxTask.postDelayed(() -> {
+            try {
+                ZtlManager.GetInstance().setUSBtoPC(false);
+            } catch (Exception e) {
+                LLog.e("OTG 关闭失败：" + e.getMessage());
+            }
+            RxTask.postDelayed(() -> {
+                isRestarting = false;
+                if (needReprint && lastPrintEvent != null) {
+                    LLog.i("超时重打：重新发送打印指令");
                     needReprint = false;
                     sendPrintMsg(lastPrintEvent);
-                }else{
-                    LLog.i("没有需要重打印的指令");
+                } else {
+                    LLog.i("无需重打");
                 }
             }, 5000);
         }, 5000);
-
     }
 
     /**

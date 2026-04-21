@@ -74,7 +74,21 @@ public class HITIManager extends PrinterManage {
 
     @Override
     public void getStatus() {
-
+        if (mPrintUtil == null) {
+            LLog.e("打印机未初始化，无法查询状态");
+            mPrinterCallbackListener.initStatus(PrinterType.HITI, false, "打印机未初始化");
+            return;
+        }
+        RxTask.runAsync(() -> {
+            try {
+                String status = mPrintUtil.getPrintStatus();
+                LLog.i("HITI 状态查询：" + status);
+                mPrinterCallbackListener.initStatus(PrinterType.HITI, STATUS_SUCCESS.equals(status), status);
+            } catch (Throwable t) {
+                LLog.e("HITI 状态查询异常：" + t.getMessage());
+                mPrinterCallbackListener.initStatus(PrinterType.HITI, false, t.getMessage());
+            }
+        });
     }
 
     @Override

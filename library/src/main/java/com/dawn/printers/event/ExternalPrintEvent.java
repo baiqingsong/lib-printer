@@ -3,6 +3,8 @@ package com.dawn.printers.event;
 import java.io.Serializable;
 
 public class ExternalPrintEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public enum EventType {
         GET_STATUS,// 获取状态
         GET_PRINT_COUNT,// 获取剩余纸张数

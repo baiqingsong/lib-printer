@@ -70,7 +70,16 @@ public class PrintService extends Service implements IPrinterCallbackListener {
     public void onDestroy() {
         super.onDestroy();
         LLog.e("PrintService onDestroy");
+        // 逐一停止各打印机驱动，释放连接和线程资源
+        stopAllManagers();
         callbacks.kill();
+    }
+
+    private void stopAllManagers() {
+        try { if (hitiManager  != null) hitiManager.stop();  } catch (Exception e) { LLog.e("stop HITI 失败: " + e.getMessage()); }
+        try { if (dnpManager   != null) dnpManager.stop();   } catch (Exception e) { LLog.e("stop DNP 失败: "  + e.getMessage()); }
+        try { if (icodManager  != null) icodManager.stop();  } catch (Exception e) { LLog.e("stop ICOD 失败: " + e.getMessage()); }
+        try { if (uvManager    != null) uvManager.stop();    } catch (Exception e) { LLog.e("stop UV 失败: "   + e.getMessage()); }
     }
 
     public void getPrintEvent(PrintEvent event){
