@@ -1,0 +1,37 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:2:1-12:12
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:2:1-12:12
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:2:1-12:12
+	package
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:3:5-32
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.KILL_BACKGROUND_PROCESSES
+ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:5:5-84
+	android:name
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:5:22-81
+application
+ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:7:5-11:19
+service#com.dawn.printers.PrintService
+ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:8:9-10:42
+	android:process
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:10:13-39
+	android:name
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:9:13-58
+uses-sdk
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+		ADDED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+		INJECTED from D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml

@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/layout-v21/notification_action.xml",
+        "source": "com.dawn.printers.library-core-1.9.0-1:/layout-v21/notification_action.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/layout-v21/notification_action_tombstone.xml",
+        "source": "com.dawn.printers.library-core-1.9.0-1:/layout-v21/notification_action_tombstone.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/layout-v21/notification_template_custom_big.xml",
+        "source": "com.dawn.printers.library-core-1.9.0-1:/layout-v21/notification_template_custom_big.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/layout-v21/notification_template_icon_group.xml",
+        "source": "com.dawn.printers.library-core-1.9.0-1:/layout-v21/notification_template_icon_group.xml"
+    }
+]

@@ -1,0 +1,38 @@
+[
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_color_highlight_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_color_highlight_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_btn_checkable.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_btn_checkable.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_btn_colored_text_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_btn_colored_text_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_spinner.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_spinner.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_seek_thumb.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_seek_thumb.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_btn_colored_borderless_text_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_btn_colored_borderless_text_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_default.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_default.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_edittext.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_edittext.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/color-v23/abc_tint_switch_track.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/color-v23/abc_tint_switch_track.xml"
+    }
+]

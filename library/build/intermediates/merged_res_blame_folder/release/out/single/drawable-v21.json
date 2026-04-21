@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/notification_action_background.xml",
+        "source": "com.dawn.printers.library-core-1.9.0-1:/drawable-v21/notification_action_background.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/abc_btn_colored_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/drawable-v21/abc_btn_colored_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/abc_dialog_material_background.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/drawable-v21/abc_dialog_material_background.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/abc_list_divider_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/drawable-v21/abc_list_divider_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/abc_action_bar_item_background_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/drawable-v21/abc_action_bar_item_background_material.xml"
+    },
+    {
+        "merged": "com.dawn.printers.library-merged_res-20:/drawable-v21/abc_edit_text_material.xml",
+        "source": "com.dawn.printers.library-appcompat-1.6.1-15:/drawable-v21/abc_edit_text_material.xml"
+    }
+]

@@ -1,0 +1,22 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.dawn.printers" >
+4
+5    <uses-sdk android:minSdkVersion="28" />
+5-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml
+6
+7    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+7-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:5:5-84
+7-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:5:22-81
+8
+9    <application>
+9-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:7:5-11:19
+10        <service
+10-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:8:9-10:42
+11            android:name="com.dawn.printers.PrintService"
+11-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:9:13-58
+12            android:process=":printer" />
+12-->D:\lib\15.lib-printer\lib-printer\library\src\main\AndroidManifest.xml:10:13-39
+13    </application>
+14
+15</manifest>
