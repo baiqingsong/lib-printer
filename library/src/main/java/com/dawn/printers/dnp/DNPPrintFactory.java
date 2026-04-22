@@ -25,7 +25,7 @@ import com.saika.dnpprintersdk.model.PrintSpeed;
 import com.saika.dnpprintersdk.model.PrinterInfo;
 import com.saika.dnpprintersdk.model.PrinterModel;
 import com.saika.dnpprintersdk.model.PrinterStatus;
-import com.dawn.util_fun.RxTask;
+import com.dawn.printers.internal.RxTask;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;

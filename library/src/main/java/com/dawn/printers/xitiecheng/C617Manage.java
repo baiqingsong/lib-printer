@@ -5,7 +5,7 @@
 //
 //import com.dawn.printers.IPrinterCallbackListener;
 //import com.dawn.printers.PrinterManage;
-//import com.dawn.util_fun.RxTask;
+//import com.dawn.printers.internal.RxTask;
 //import com.dawn.util_fun.LLog;
 //import com.google.gson.Gson;
 //import com.printer.sdk.PrintMsg;
