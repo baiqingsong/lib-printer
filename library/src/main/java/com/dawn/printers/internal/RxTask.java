@@ -1,4 +1,4 @@
-﻿package com.dawn.printers.internal;
+package com.dawn.printers.internal;
 
 import android.os.Handler;
 import android.os.Looper;
