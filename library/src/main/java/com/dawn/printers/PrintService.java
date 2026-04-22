@@ -18,7 +18,7 @@ import com.dawn.printers.hiti.HITIManager;
 import com.dawn.printers.icod.ICODManager;
 import com.dawn.printers.uv.UVManager;
 import com.dawn.util_fun.LLog;
-import com.dawn.util_fun.RxTask;
+import com.dawn.printers.internal.RxTask;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;

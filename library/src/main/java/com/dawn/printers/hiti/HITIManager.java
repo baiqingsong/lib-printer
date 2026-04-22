@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import com.dawn.printers.IPrinterCallbackListener;
 import com.dawn.printers.PrinterManage;
 import com.dawn.printers.PrinterType;
-import com.dawn.util_fun.RxTask;
+import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 
 import java.io.File;

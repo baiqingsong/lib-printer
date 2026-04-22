@@ -12,7 +12,7 @@ import android.os.RemoteException;
 import com.dawn.printers.event.ExternalPrintEvent;
 import com.dawn.printers.event.PrintEvent;
 import com.dawn.util_fun.LLog;
-import com.dawn.util_fun.RxTask;
+import com.dawn.printers.internal.RxTask;
 
 import org.greenrobot.eventbus.EventBus;
 

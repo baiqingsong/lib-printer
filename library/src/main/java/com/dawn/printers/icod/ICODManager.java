@@ -7,7 +7,7 @@ import android.graphics.BitmapFactory;
 import com.dawn.printers.IPrinterCallbackListener;
 import com.dawn.printers.PrinterManage;
 import com.dawn.printers.PrinterType;
-import com.dawn.util_fun.RxTask;
+import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 
 public class ICODManager extends PrinterManage {
