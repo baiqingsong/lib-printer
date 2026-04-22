@@ -63,8 +63,10 @@ dependencies {
     // EventBus（PrintService 依赖）
     implementation 'org.greenrobot:eventbus:3.3.1'
 
-    // ZTL 串口 API（内嵌 JAR，随库一起打包）
-    implementation fileTree(dir: 'libs', include: ['ZtlApi.jar', 'picasso-2.5.2.jar', 'printsdk2.2.1.0-api26.jar'])
+    // ZTL 串口 API（compileOnly：仅编译，消费方自行提供；避免与宿主 ZtlApi.jar 重复打包）
+    compileOnly fileTree(dir: 'libs', include: ['ZtlApi.jar'])
+    // 其余 JAR 随 AAR 一起打包，消费方无需单独提供
+    implementation fileTree(dir: 'libs', include: ['picasso-2.5.2.jar', 'printsdk2.2.1.0-api26.jar'])
 
     // ====== 可选打印机 SDK（compileOnly：仅编译期，消费方按需自行添加） ======
     // DNP 打印机 SDK（DNP_RX1 / DNP_620 / DNP_410）
