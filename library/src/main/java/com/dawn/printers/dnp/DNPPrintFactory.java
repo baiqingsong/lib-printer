@@ -105,6 +105,7 @@ public class DNPPrintFactory {
 
                     @Override
                     public void onDisconnected(String printerId, String reason) {
+                        com.dawn.util_fun.LLog.i("DNP 连接断开: printerId=" + printerId + " reason=" + reason);
                         connection = null;
                     }
                 });
@@ -169,7 +170,7 @@ public class DNPPrintFactory {
         MediaValidationConfig validationConfig = MediaValidationConfig.builder()
                 .lowMediaThreshold(10)
                 .insufficientMediaPolicy(MediaValidationConfig.InsufficientMediaPolicy.WARN)
-                .incompatibleSizePolicy(MediaValidationConfig.IncompatibleSizePolicy.WARN)
+                .incompatibleSizePolicy(MediaValidationConfig.IncompatibleSizePolicy.BLOCK)
                 .enableValidation(true)
                 .build();
         conn.setMediaValidationConfig(validationConfig);
@@ -287,6 +288,7 @@ public class DNPPrintFactory {
             com.dawn.util_fun.LLog.e("DNP queuePrint 异常: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return false;
         }
+        com.dawn.util_fun.LLog.i("DNP queuePrint 成功: thread=" + Thread.currentThread().getName());
         return true;
     }
 

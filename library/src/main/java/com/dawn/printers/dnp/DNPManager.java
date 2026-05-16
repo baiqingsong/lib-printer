@@ -10,9 +10,7 @@ import com.dawn.printers.PrinterType;
 import com.dawn.printers.R;
 import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
-import com.saika.dnpprintersdk.exception.ConnectionException;
 import com.saika.dnpprintersdk.model.PrintOrder;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -20,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 完成；与旧版逐张传图不同，上层传入的 {@code printNum} 即订单份数，不会循环多次提交。
  */
 public class DNPManager extends PrinterManage {
+    private int currentStatus = 0;
     private DNPPrintFactory mDNPPrintFactory;
     private int dnpOffsetValue = 0;
     private int color = 0;
@@ -83,6 +82,11 @@ public class DNPManager extends PrinterManage {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
+        if (currentStatus == 1) {
+            LLog.i("打印机忙碌中，无法打印");
+            return;
+        }
+        currentStatus = 1;
         currentNum = printNum;
         currentImagePath = imagePath;
         currentIsCut = isCut;
@@ -93,22 +97,26 @@ public class DNPManager extends PrinterManage {
     private void enqueueDnpPrintOrder() {
         RxTask.runAsync(() -> {
             if (mDNPPrintFactory.getConnection() == null || !mDNPPrintFactory.getConnection().isConnected()) {
+                currentStatus = 0;
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印机未连接");
                 return;
             }
 
             try {
                 if (!mDNPPrintFactory.getConnection().isReady()) {
+                    currentStatus = 0;
                     mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印机未就绪");
                     return;
                 }
             } catch (Exception e) {
+                currentStatus = 0;
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印机状态异常");
                 return;
             }
 
             Bitmap bitmap = BitmapFactory.decodeFile(currentImagePath);
             if (bitmap == null) {
+                currentStatus = 0;
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印失败");
                 return;
             }
@@ -119,56 +127,33 @@ public class DNPManager extends PrinterManage {
             // queuePrint 异步处理 Bitmap，禁止在 printImage 返回后立即 recycle，否则 SDK 报
             // "cannot use a recycled source in createBitmap"
             final Bitmap bitmapToPrint = bitmap;
-            // 防止 onOrderProgress 与 onOrderCompleted 重复上报
-            final AtomicBoolean resultReported = new AtomicBoolean(false);
             mDNPPrintFactory.setPrintCallbacks(
                     new DnpSdkCallbackAdapters.OrderAdapter() {
                         @Override
-                        public void onOrderQueued(PrintOrder order) {
-                            LLog.i("DNP 订单已排队: " + (order != null ? order.getOrderId() : "null"));
-                        }
-
-                        @Override
-                        public void onOrderStarted(PrintOrder order) {
-                            LLog.i("DNP 订单开始打印: " + (order != null ? order.getOrderId() : "null"));
-                        }
-
-                        /**
-                         * 每张完成时触发。第一张成功即视为整体成功提前跳转，
-                         * 剩余张数继续在后台打印，bitmap 由 onOrderCompleted 负责回收。
-                         */
-                        @Override
-                        public void onOrderProgress(PrintOrder order, int completedTasks, int totalTasks) {
-                            if (completedTasks >= 1 && resultReported.compareAndSet(false, true)) {
-                                LLog.i("DNP 第一张打印完成（" + completedTasks + "/" + totalTasks + "），提前视为成功");
-                                mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
-                            }
-                        }
-
-                        /** 全部打印完成，回收 bitmap；若第一张已提前上报则不重复通知 */
-                        @Override
                         public void onOrderCompleted(PrintOrder order) {
+                            LLog.i("DNP 打印完成: thread=" + Thread.currentThread().getName()
+                                    + " orderId=" + (order != null ? order.getOrderId() : "null"));
+                            currentStatus = 0;
                             recycleBitmapQuietly(bitmapToPrint);
-                            if (resultReported.compareAndSet(false, true)) {
-                                mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
-                            }
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
                         }
 
                         @Override
                         public void onOrderFailed(PrintOrder order, String message) {
+                            LLog.e("DNP 打印失败: thread=" + Thread.currentThread().getName()
+                                    + " msg=" + message);
+                            currentStatus = 0;
                             recycleBitmapQuietly(bitmapToPrint);
-                            if (resultReported.compareAndSet(false, true)) {
-                                mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
-                                        message != null ? message : "打印失败");
-                            }
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                    message != null ? message : "打印失败");
                         }
 
                         @Override
                         public void onOrderCancelled(PrintOrder order) {
+                            LLog.i("DNP 打印取消: thread=" + Thread.currentThread().getName());
+                            currentStatus = 0;
                             recycleBitmapQuietly(bitmapToPrint);
-                            if (resultReported.compareAndSet(false, true)) {
-                                mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
-                            }
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
                         }
                     },
                     null
@@ -177,9 +162,20 @@ public class DNPManager extends PrinterManage {
             boolean ok = mDNPPrintFactory.printImage(context, dnpPrintType, bitmapToPrint, color, dnpOffsetValue,
                     currentIsCut, copies);
             if (!ok) {
+                currentStatus = 0;
                 recycleBitmapQuietly(bitmapToPrint);
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "图像发送失败");
+                return;
             }
+
+            // 诊断：5秒后若仍无回调（onOrderCompleted/Failed/Cancelled），说明队列处理器未运行
+            new Thread(() -> {
+                try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+                if (currentStatus == 1) {
+                    LLog.e("DNP ALERT: queuePrint 后 5 秒内未收到任何回调（Completed/Failed/Cancelled），"
+                            + "队列处理器可能已崩溃或被 stop()");
+                }
+            }, "DNP-Watchdog").start();
         });
     }
 
