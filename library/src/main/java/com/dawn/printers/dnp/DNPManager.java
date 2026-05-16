@@ -11,6 +11,7 @@ import com.dawn.printers.R;
 import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 import com.saika.dnpprintersdk.model.PrintOrder;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -117,25 +118,46 @@ public class DNPManager extends PrinterManage {
             // queuePrint 异步处理 Bitmap，禁止在 printImage 返回后立即 recycle，否则 SDK 报
             // "cannot use a recycled source in createBitmap"
             final Bitmap bitmapToPrint = bitmap;
+            // 防止 onOrderProgress 与 onOrderCompleted 重复上报
+            final AtomicBoolean resultReported = new AtomicBoolean(false);
             mDNPPrintFactory.setPrintCallbacks(
                     new DnpSdkCallbackAdapters.OrderAdapter() {
+                        /**
+                         * 每张完成时触发。第一张成功即视为整体成功提前跳转，
+                         * 剩余张数继续在后台打印，bitmap 由 onOrderCompleted 负责回收。
+                         */
+                        @Override
+                        public void onOrderProgress(PrintOrder order, int completedTasks, int totalTasks) {
+                            if (completedTasks >= 1 && resultReported.compareAndSet(false, true)) {
+                                LLog.i("DNP 第一张打印完成（" + completedTasks + "/" + totalTasks + "），提前视为成功");
+                                mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                            }
+                        }
+
+                        /** 全部打印完成，回收 bitmap；若第一张已提前上报则不重复通知 */
                         @Override
                         public void onOrderCompleted(PrintOrder order) {
                             recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                            if (resultReported.compareAndSet(false, true)) {
+                                mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                            }
                         }
 
                         @Override
                         public void onOrderFailed(PrintOrder order, String message) {
                             recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
-                                    message != null ? message : "打印失败");
+                            if (resultReported.compareAndSet(false, true)) {
+                                mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                        message != null ? message : "打印失败");
+                            }
                         }
 
                         @Override
                         public void onOrderCancelled(PrintOrder order) {
                             recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                            if (resultReported.compareAndSet(false, true)) {
+                                mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                            }
                         }
                     },
                     null
@@ -156,8 +178,7 @@ public class DNPManager extends PrinterManage {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
-        // printTest 仅用于调试，实际使用请通过 printImage() 传入图片路径
-        Bitmap bitmap = null;
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x1240);
         if (bitmap != null) {
             final Bitmap bitmapToPrint = bitmap;
             mDNPPrintFactory.setPrintCallbacks(new DnpSdkCallbackAdapters.OrderAdapter() {

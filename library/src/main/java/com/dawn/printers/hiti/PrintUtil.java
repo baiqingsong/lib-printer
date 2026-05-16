@@ -34,10 +34,15 @@ class PrintUtil {
     public PrinterOperation operation;//打印机操作类
 
     private static PrintUtil printUtil;
-    public PrintUtil(Context context){
+    private PrintUtil(Context context){
         InitialPrintValue(context);
     }
 
+    public static synchronized PrintUtil singleInstance(Context context){
+        if(printUtil == null)
+            printUtil = new PrintUtil(context);
+        return printUtil;
+    }
 
     ScheduledExecutorService exec3;
     /**

@@ -8,7 +8,7 @@ android {
     namespace "com.dawn.printers"
 
     defaultConfig {
-        minSdk 28
+        minSdk 24
         targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -43,7 +43,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.baiqingsong'
                 artifactId = 'lib-printer'
-                version = '1.0.0'
+                version = '1.0.7'
             }
         }
     }
@@ -58,15 +58,13 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
 
     // Gson（LJsonUtil 依赖）
-    implementation 'com.google.code.gson:gson:2.10.1'
+    // implementation 'com.google.code.gson:gson:2.10.1'  // removed (only needed for UV JSON parsing)
 
-    // EventBus（PrintService 依赖）
+    // EventBus（PrintFactory 依赖）
     implementation 'org.greenrobot:eventbus:3.3.1'
 
-    // ZTL 串口 API（compileOnly：仅编译，消费方自行提供；避免与宿主 ZtlApi.jar 重复打包）
-    compileOnly fileTree(dir: 'libs', include: ['ZtlApi.jar'])
-    // 其余 JAR 随 AAR 一起打包，消费方无需单独提供
-    implementation fileTree(dir: 'libs', include: ['picasso-2.5.2.jar', 'printsdk2.2.1.0-api26.jar'])
+    // HiTi 打印机 SDK（随 AAR 打包，消费方无需单独提供）
+    implementation fileTree(dir: 'libs', include: ['printsdk2.2.1.0-api26.jar'])
 
     // ====== 可选打印机 SDK（compileOnly：仅编译期，消费方按需自行添加） ======
     // DNP 打印机 SDK（DNP_RX1 / DNP_620 / DNP_410）
@@ -74,16 +72,4 @@ dependencies {
 
     // 打印机服务 SDK
     compileOnly(name: 'printerService-release', ext: 'aar')
-
-    // ICOD 热敏打印机 SDK
-    compileOnly(name: 'icod_3.1.8_f', ext: 'jar')
-
-    // 兄弟打印机 SDK
-    compileOnly(name: 'lib-java-brsdk-common', ext: 'jar')
-    compileOnly(name: 'lib-android-brsdk-core', ext: 'aar')
-    compileOnly(name: 'lib-android-brsdk-print', ext: 'aar')
-
-    // 惠普激光打印机 SDK（本地 maven 仓库）
-    compileOnly "com.hp:common-lib:1.0.0.5"
-    compileOnly "com.hp:print-core:2.2.5"
 }

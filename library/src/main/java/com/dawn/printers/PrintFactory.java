@@ -18,7 +18,6 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
-import ZtlApi.ZtlManager;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
@@ -233,10 +232,6 @@ public class PrintFactory {
         sendPrintMsg(new PrintEvent(PrintEvent.EventType.PRINT_IMAGE_TEST, printerType));
     }
 
-    public void printUVTest(PrinterType printerType, int resId, int channel, float width, float height, float left, float top){
-        sendPrintMsg(new PrintEvent(PrintEvent.EventType.PRINT_IMAGE_TEST, printerType, resId, channel, width, height, left, top));
-    }
-
     /**
      * 打印图片
      * @param printerType 打印机类型
@@ -253,15 +248,6 @@ public class PrintFactory {
         sendPrintMsg(lastPrintEvent);
     }
 
-    public void printImage(PrinterType printerType, String imagePath, int channel, float width, float height, float left, float top){
-        lastPrintTime = System.currentTimeMillis();
-        lastPrintEvent = new PrintEvent(PrintEvent.EventType.PRINT_IMAGE, printerType, imagePath, channel, width, height, left, top);
-        LLog.i("发送UV打印指令，图片路径：" + imagePath + ",通道：" + channel + ",宽：" + width + ",高:" + height + ",左边距：" + left + ",上边距:" + top);
-        needReprint = true;
-        createPrintCountdown(1);
-        sendPrintMsg(lastPrintEvent);
-    }
-
     private Disposable countdownDisposable;
 
     /**
@@ -272,9 +258,6 @@ public class PrintFactory {
         disposePrintCountdown();
         int totalSecond = printNum * 60 * 1000;
         LLog.i("创建打印失败倒计时，时长：" + totalSecond + "秒");
-        if(currentPrinterType == PrinterType.UV){
-            totalSecond = printNum * 90 * 1000;
-        }
         countdownDisposable = RxTask.postDelayed(() -> {
             LLog.e("打印机超时没有返回失败的结果，停止打印");
             disposePrintCountdown();
@@ -331,36 +314,19 @@ public class PrintFactory {
     }
 
     /**
-     * 打印超时处理：切换 OTG 模式以复位 USB 打印机，然后重新发送打印指令。
+     * 打印超时处理：重启服务后重新发送打印指令。
      */
     private void repeatPrint() {
-        if (isRestarting) {
-            LLog.i("已在重启中，跳过重复 repeatPrint");
-            return;
-        }
-        isRestarting = true;
-        LLog.i("打印超时，切换 OTG 复位后重试");
-        try {
-            ZtlManager.GetInstance().setUSBtoPC(true);
-        } catch (Exception e) {
-            LLog.e("OTG 开启失败：" + e.getMessage());
-        }
+        LLog.i("超时没有返回结果，打印服务请求重启服务");
+        startService(context);
         RxTask.postDelayed(() -> {
-            try {
-                ZtlManager.GetInstance().setUSBtoPC(false);
-            } catch (Exception e) {
-                LLog.e("OTG 关闭失败：" + e.getMessage());
+            if (needReprint && lastPrintEvent != null) {
+                LLog.i("重新发送打印指令");
+                needReprint = false;
+                sendPrintMsg(lastPrintEvent);
+            } else {
+                LLog.i("没有需要重打印的指令");
             }
-            RxTask.postDelayed(() -> {
-                isRestarting = false;
-                if (needReprint && lastPrintEvent != null) {
-                    LLog.i("超时重打：重新发送打印指令");
-                    needReprint = false;
-                    sendPrintMsg(lastPrintEvent);
-                } else {
-                    LLog.i("无需重打");
-                }
-            }, 5000);
         }, 5000);
     }
 
@@ -396,17 +362,6 @@ public class PrintFactory {
      */
     public void setHitiPrinterParameter(){
         sendPrintMsg(new PrintEvent(PrintEvent.EventType.PARAMETER_SETTING, PrinterType.HITI));
-    }
-
-    /**
-     * 设置UV打印机清洗喷头
-     */
-    public void setUVPrintClean(){
-        sendPrintMsg(new PrintEvent(PrintEvent.EventType.PARAMETER_SETTING, PrinterType.UV, 9));
-    }
-
-    public void setUVPrintCheck(){
-        sendPrintMsg(new PrintEvent(PrintEvent.EventType.PARAMETER_SETTING, PrinterType.UV, 10));
     }
 
 }

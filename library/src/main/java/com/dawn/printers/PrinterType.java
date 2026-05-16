@@ -8,13 +8,7 @@ public enum PrinterType {
     HITI(0),// 呈研
     DNP_RX1(4),// DNP RX1
     DNP_620(5),// DNP 620
-    DNP_410(6),// DNP 410
-    LASER(7),// 激光打印机
-    INKJET(8),// 喷墨打印机
-    THERMAL(9),// 热敏打印机
-    COLOR_LASER(10),// 彩色激光打印机
-    CITIZEN(11),// 西铁城打印机
-    UV(13);// UV打印机
+    DNP_410(6);// DNP 410
 
     private final int typeValue;
     PrinterType(int value) {

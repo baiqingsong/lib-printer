@@ -7,7 +7,6 @@ import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -15,16 +14,7 @@ import com.dawn.printers.dnp.DNPManager;
 import com.dawn.printers.event.ExternalPrintEvent;
 import com.dawn.printers.event.PrintEvent;
 import com.dawn.printers.hiti.HITIManager;
-import com.dawn.printers.icod.ICODManager;
-import com.dawn.printers.uv.UVManager;
 import com.dawn.util_fun.LLog;
-import com.dawn.printers.internal.RxTask;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import io.reactivex.rxjava3.disposables.Disposable;
 
 public class PrintService extends Service implements IPrinterCallbackListener {
     private final RemoteCallbackList<IPrinterAidlCallback> callbacks = new RemoteCallbackList<>();
@@ -42,7 +32,7 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 if(data != null){
                     PrintEvent printEvent = (PrintEvent) data.getSerializable("printEvent");
                     if(printEvent != null) {
-                        getPrintEvent(printEvent);
+                        handlePrintEvent(printEvent);
                     }
                 }
             }
@@ -78,11 +68,9 @@ public class PrintService extends Service implements IPrinterCallbackListener {
     private void stopAllManagers() {
         try { if (hitiManager  != null) hitiManager.stop();  } catch (Exception e) { LLog.e("stop HITI 失败: " + e.getMessage()); }
         try { if (dnpManager   != null) dnpManager.stop();   } catch (Exception e) { LLog.e("stop DNP 失败: "  + e.getMessage()); }
-        try { if (icodManager  != null) icodManager.stop();  } catch (Exception e) { LLog.e("stop ICOD 失败: " + e.getMessage()); }
-        try { if (uvManager    != null) uvManager.stop();    } catch (Exception e) { LLog.e("stop UV 失败: "   + e.getMessage()); }
     }
 
-    public void getPrintEvent(PrintEvent event){
+    public void handlePrintEvent(PrintEvent event){
         switch (event.getEvent()) {
             case INIT_PRINTER://设备初始化
                 LLog.i("打印机初始化，类型：" + event.getPrinterType());
@@ -98,19 +86,11 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 break;
             case PRINT_IMAGE_TEST:// 打印测试页
                 LLog.i("打印测试页，类型：" + event.getPrinterType());
-                if (PrinterType.UV == event.getPrinterType()) {
-                    printTestImage(event.getPrinterType(), event.getResId(), event.getChannel(), event.getWidth(), event.getHeight(), event.getLeft(), event.getTop());
-                } else{
-                    printTestImage(event.getPrinterType());
-                }
+                printTestImage(event.getPrinterType());
                 break;
             case PRINT_IMAGE:// 打印图片
                 LLog.i("打印图片，类型：" + event.getPrinterType() + "，图片路径：" + event.getImagePath() + "，打印数量：" + event.getPrintNum() + "，是否切纸：" + event.isCut());
-                if(PrinterType.UV == event.getPrinterType()){
-                    printImage(event.getPrinterType(), event.getImagePath(), event.getChannel(), event.getWidth(), event.getHeight(), event.getLeft(), event.getTop());
-                }else{
-                    printImage(event.getPrinterType(), event.getImagePath(), event.getPrintNum(), event.isCut());
-                }
+                printImage(event.getPrinterType(), event.getImagePath(), event.getPrintNum(), event.isCut());
                 break;
             case PARAMETER_SETTING://参数设置
                 switch (event.getPrinterType()){
@@ -123,16 +103,8 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                         }
                         break;
                     case HITI:
-                        if(hitiManager != null)
+                        if(hitiManager != null){
                             hitiManager.printRibbonCalibration();// 色带校验
-                        break;
-                    case UV:
-                        if(uvManager != null){
-                            if(event.getAction() == 9){
-                                uvManager.cleanPrintHeader();// 清洗喷嘴
-                            }else if(event.getAction() == 10){
-                                uvManager.checkPrintHeader();// 打印头检测
-                            }
                         }
                         break;
                 }
@@ -142,8 +114,7 @@ public class PrintService extends Service implements IPrinterCallbackListener {
 
     private HITIManager hitiManager;// 呈研打印机管理器
     private DNPManager dnpManager;// DNP 打印机管理器
-    private ICODManager icodManager;// ICOD 打印机管理器
-    private UVManager uvManager;// UV 打印机管理器
+
 
     /**
      * 打印机初始化
@@ -166,18 +137,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 }
                 dnpManager.initPrinter(printerType);
                 break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager == null){
-                    icodManager = new ICODManager(this, this);
-                }
-                icodManager.initPrinter(printerType);
-                break;
-            case UV:
-                if (uvManager == null) {
-                    uvManager = new UVManager(this, this);
-                }
-                uvManager.initPrinter(printerType);
-                break;
         }
     }
 
@@ -197,11 +156,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
             case DNP_410:
                 if(dnpManager != null){
                     dnpManager.getPrintCount();
-                }
-                break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager != null){
-                    icodManager.getPrintCount();
                 }
                 break;
         }
@@ -225,11 +179,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                     dnpManager.getStatus();
                 }
                 break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager != null){
-                    icodManager.getStatus();
-                }
-                break;
         }
     }
 
@@ -251,17 +200,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                     dnpManager.printTest();
                 }
                 break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager != null){
-                    icodManager.printTest();
-                }
-                break;
-        }
-    }
-
-    private void printTestImage(PrinterType printerType, int resId, int channel, float width, float height, float left, float top){
-        if(PrinterType.UV == printerType && uvManager != null){
-            uvManager.printTest(this, resId, channel, width, height, left, top);
         }
     }
 
@@ -291,27 +229,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
 
                 }
                 break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager != null){
-                    icodManager.startPrint(imagePath, printNum, isCut);
-                }
-                break;
-        }
-    }
-
-    /**
-     * UV 打印图片
-     * @param printerType 打印机类型
-     * @param imagePath 图片地址
-     * @param channel 打印通道
-     * @param width 打印宽度
-     * @param height 打印高度
-     * @param left 打印左边距
-     * @param top 打印上边距
-     */
-    private void printImage(PrinterType printerType, String imagePath, int channel, float width, float height, float left, float top){
-        if(PrinterType.UV == printerType && uvManager != null){
-            uvManager.printImage(this, imagePath, channel, width, height, left, top);
         }
     }
 
@@ -333,11 +250,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                     dnpManager.stop();
                 }
                 break;
-            case THERMAL:// ICOD 热敏打印机
-                if(icodManager != null){
-                    icodManager.stop();
-                }
-                break;
         }
     }
 
@@ -347,9 +259,6 @@ public class PrintService extends Service implements IPrinterCallbackListener {
         }
         if(dnpManager != null){
             dnpManager.stop();
-        }
-        if(icodManager != null){
-            icodManager.stop();
         }
     }
 

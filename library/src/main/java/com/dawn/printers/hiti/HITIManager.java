@@ -28,7 +28,7 @@ public class HITIManager extends PrinterManage {
     @Override
     public void initPrinter(PrinterType printerType) {
         if (mPrintUtil == null) {
-            mPrintUtil = new PrintUtil(context);
+            mPrintUtil = PrintUtil.singleInstance(context);
         }
         mPrintUtil.start(context);
         /*查询打印机状态*/
