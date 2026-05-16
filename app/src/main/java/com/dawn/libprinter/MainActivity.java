@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
             PrinterType.DNP_RX1,
             PrinterType.DNP_620,
             PrinterType.DNP_410,
-            PrinterType.THERMAL,
-            PrinterType.UV,
     };
 
     @Override
