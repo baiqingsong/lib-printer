@@ -41,7 +41,7 @@ public class DNPPrintFactory {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private PrinterManager printerManager;
-    private PrinterConnection connection;
+    private volatile PrinterConnection connection;
 
 
     public DNPPrintFactory(Context context) {
@@ -169,7 +169,7 @@ public class DNPPrintFactory {
         MediaValidationConfig validationConfig = MediaValidationConfig.builder()
                 .lowMediaThreshold(10)
                 .insufficientMediaPolicy(MediaValidationConfig.InsufficientMediaPolicy.WARN)
-                .incompatibleSizePolicy(MediaValidationConfig.IncompatibleSizePolicy.BLOCK)
+                .incompatibleSizePolicy(MediaValidationConfig.IncompatibleSizePolicy.WARN)
                 .enableValidation(true)
                 .build();
         conn.setMediaValidationConfig(validationConfig);
@@ -281,7 +281,12 @@ public class DNPPrintFactory {
         if (pendingPrintCallback != null) {
             connection.setPrintCallback(pendingPrintCallback);
         }
-        connection.queuePrint(bitmap, options);
+        try {
+            connection.queuePrint(bitmap, options);
+        } catch (Exception e) {
+            com.dawn.util_fun.LLog.e("DNP queuePrint 异常: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return false;
+        }
         return true;
     }
 
