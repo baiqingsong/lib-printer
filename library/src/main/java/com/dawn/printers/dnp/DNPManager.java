@@ -11,7 +11,6 @@ import com.dawn.printers.R;
 import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 import com.saika.dnpprintersdk.exception.ConnectionException;
-import com.saika.dnpprintersdk.model.MediaInfo;
 import com.saika.dnpprintersdk.model.PrintOrder;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -116,20 +115,6 @@ public class DNPManager extends PrinterManage {
 
             int copies = Math.max(1, currentNum);
             LLog.i("DNP 提交打印订单: 份数=" + copies + "（单次 queuePrint + setCopies），偏移=" + dnpOffsetValue + ", 颜色=" + color);
-
-            // 打印前记录媒体信息，便于排查纸张尺寸不匹配等问题
-            try {
-                MediaInfo mediaInfo = mDNPPrintFactory.getConnection().getMediaInfo();
-                if (mediaInfo != null) {
-                    LLog.i("DNP 媒体信息: remaining=" + mediaInfo.getRemainingPrints()
-                            + ", paperSize=" + mediaInfo.getPaperSize()
-                            + ", mediaType=" + mediaInfo.getMediaType());
-                } else {
-                    LLog.i("DNP 媒体信息: null");
-                }
-            } catch (Exception e) {
-                LLog.e("DNP 获取媒体信息失败: " + e.getMessage());
-            }
 
             // queuePrint 异步处理 Bitmap，禁止在 printImage 返回后立即 recycle，否则 SDK 报
             // "cannot use a recycled source in createBitmap"

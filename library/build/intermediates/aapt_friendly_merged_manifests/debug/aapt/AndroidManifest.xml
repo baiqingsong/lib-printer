@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dawn.printers" >
 
-    <uses-sdk android:minSdkVersion="28" />
+    <uses-sdk
+        android:minSdkVersion="24"
+        android:targetSdkVersion="34" />
 
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 
