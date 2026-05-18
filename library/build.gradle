@@ -63,8 +63,8 @@ dependencies {
     // EventBus（PrintFactory 依赖）
     implementation 'org.greenrobot:eventbus:3.3.1'
 
-    // HiTi 打印机 SDK（compileOnly：消费方自行提供，避免重复打包）
-    compileOnly fileTree(dir: 'libs', include: ['printsdk2.2.1.0-api26.jar'])
+    // HiTi 打印机 SDK（随 AAR 打包，消费方无需单独提供）
+    implementation fileTree(dir: 'libs', include: ['printsdk2.2.1.0-api26.jar'])
 
     // ====== 可选打印机 SDK（compileOnly：仅编译期，消费方按需自行添加） ======
     // DNP 打印机 SDK（DNP_RX1 / DNP_620 / DNP_410）
