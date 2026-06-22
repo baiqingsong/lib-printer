@@ -294,14 +294,45 @@ public class DNPPrintFactory {
     }
 
     /**
-     * 提交测试打印订单（强制 4x6 纸张，适用于 6 寸测试页）。
+     * 从文件路径提交打印（与 camera_all 一致，推荐使用以避免 Bitmap 回收重试问题）。
+     */
+    public boolean enqueuePrintFromFile(String path, DnpPrinterType printType, int copies,
+                                        boolean isCut, OrderCallback orderCallback) {
+        PrinterConnection c = connection;
+        if (c == null) {
+            lastSubmitError = "DNP连接为空";
+            return false;
+        }
+        if (!c.isConnected()) {
+            lastSubmitError = "DNP连接已断开";
+            return false;
+        }
+        if (path == null || !new File(path).isFile()) {
+            lastSubmitError = "DNP打印文件不存在：" + path;
+            return false;
+        }
+        try {
+            c.setOrderCallback(orderCallback);
+            PrintOptions options = buildPrintOptions(printType, 0, isCut, copies);
+            c.queuePrint(path, options);
+            lastSubmitError = "";
+            return true;
+        } catch (Exception e) {
+            lastSubmitError = "DNP提交打印异常：" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    /**
+     * 提交 6 寸测试打印订单（与 camera_all 一致：RX1/DS620 使用 6x4 纸张）。
      */
     public boolean printTestImage(DnpPrinterType printType, Bitmap bitmap, int dnpOffsetValue) {
         if (connection == null || !connection.isConnected() || bitmap == null) {
             return false;
         }
+        PaperSize paper = printType == DnpPrinterType.QW410 ? PaperSize.SIZE_4X6 : PaperSize.SIZE_6X4;
         PrintOptions options = new PrintOptions()
-                .setPaperSize(PaperSize.SIZE_4X6)
+                .setPaperSize(paper)
                 .setFinishType(FinishType.GLOSSY)
                 .setPrintSpeed(PrintSpeed.STANDARD)
                 .setCutterMode(CutterMode.NORMAL)
@@ -350,8 +381,8 @@ public class DNPPrintFactory {
     }
 
     private PrintOptions buildPrintOptions(DnpPrinterType printType, int colorPreset, boolean isCut, int copies) {
-        // QW410 仅支持 4x6；其他型号（RX1/DS620）默认使用 6x8
-        PaperSize paper = printType == DnpPrinterType.QW410 ? PaperSize.SIZE_4X6 : PaperSize.SIZE_6X8;
+        // 与 camera_all 一致：QW410→4x6，RX1/DS620→6x4（6 寸横版）
+        PaperSize paper = printType == DnpPrinterType.QW410 ? PaperSize.SIZE_4X6 : PaperSize.SIZE_6X4;
         CutterMode cutter = isCut ? CutterMode.TWO_INCH : CutterMode.NORMAL;
         PrintSpeed speed = PrintSpeed.STANDARD;
 

@@ -12,6 +12,9 @@ import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 import com.saika.dnpprintersdk.model.PrintOrder;
 
+import java.io.File;
+import java.io.FileOutputStream;
+
 
 /**
  * DNP 打印（Saika 新 SDK）。多份打印通过单次 {@code queuePrint} + {@link com.saika.dnpprintersdk.model.PrintOptions#setCopies}
@@ -60,6 +63,7 @@ public class DNPManager extends PrinterManage {
 
         @Override
         public void onOrderFailed(PrintOrder order, String message) {
+            // 与 camera_all 一致：失败时回收 Bitmap（使用 isRecycled 保护）
             recycleBitmapQuietly(bitmap);
             if (listener != null) {
                 listener.getPrintResult(printerType, false, message != null ? message : "打印失败");
@@ -158,24 +162,36 @@ public class DNPManager extends PrinterManage {
                 return;
             }
 
-            Bitmap bitmap = BitmapFactory.decodeFile(currentImagePath);
-            if (bitmap == null) {
-                mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印失败");
-                return;
-            }
-
             int copies = Math.max(1, currentNum);
-            LLog.i("DNP 提交打印订单: 份数=" + copies + "，偏移=" + dnpOffsetValue + ", 颜色=" + color);
+            LLog.i("DNP 提交打印订单: 份数=" + copies + "，偏移=" + dnpOffsetValue + ", 颜色=" + color
+                    + ", 路径=" + currentImagePath);
 
-            final Bitmap bitmapToPrint = bitmap;
-            mDNPPrintFactory.setPrintCallbacks(
-                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
+            // 与 camera_all 一致：使用文件路径提交，避免 Bitmap 回收重试问题
+            boolean ok = mDNPPrintFactory.enqueuePrintFromFile(currentImagePath, dnpPrintType,
+                    copies, currentIsCut,
+                    new DnpSdkCallbackAdapters.OrderAdapter() {
+                        @Override
+                        public void onOrderCompleted(PrintOrder order) {
+                            LLog.i("DNP print order completed, type=" + currentPrinterType);
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                        }
 
-            boolean ok = mDNPPrintFactory.printImage(context, dnpPrintType, bitmapToPrint, color, dnpOffsetValue,
-                    currentIsCut, copies);
+                        @Override
+                        public void onOrderFailed(PrintOrder order, String message) {
+                            LLog.e("DNP print order failed, type=" + currentPrinterType + ", msg=" + message);
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                    message != null ? message : "打印失败");
+                        }
+
+                        @Override
+                        public void onOrderCancelled(PrintOrder order) {
+                            LLog.e("DNP print order cancelled, type=" + currentPrinterType);
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                        }
+                    });
             if (!ok) {
-                recycleBitmapQuietly(bitmapToPrint);
-                mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "图像发送失败");
+                mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                        mDNPPrintFactory.getLastSubmitError());
             }
         });
     }
@@ -204,16 +220,33 @@ public class DNPManager extends PrinterManage {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x1240);
-        if (bitmap != null) {
-            final Bitmap bitmapToPrint = bitmap;
-            mDNPPrintFactory.setPrintCallbacks(
-                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
-            boolean ok = mDNPPrintFactory.printTestImage(dnpPrintType, bitmapToPrint, dnpOffsetValue);
-            if (!ok) {
-                recycleBitmapQuietly(bitmapToPrint);
-            }
+        // 将 drawable 复制到缓存文件，使用文件路径提交（避免 Bitmap 回收重试问题）
+        String cachePath = copyDrawableToCache(context, R.drawable.pic1844x1240, "dnp_test_6inch");
+        if (cachePath == null) {
+            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "测试图片加载失败");
+            return;
         }
+        mDNPPrintFactory.enqueuePrintFromFile(cachePath, dnpPrintType, 1, false,
+                new DnpSdkCallbackAdapters.OrderAdapter() {
+                    @Override
+                    public void onOrderCompleted(PrintOrder order) {
+                        LLog.i("DNP test print completed, type=" + currentPrinterType);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                    }
+
+                    @Override
+                    public void onOrderFailed(PrintOrder order, String message) {
+                        LLog.e("DNP test print failed, type=" + currentPrinterType + ", msg=" + message);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                message != null ? message : "打印失败");
+                    }
+
+                    @Override
+                    public void onOrderCancelled(PrintOrder order) {
+                        LLog.e("DNP test print cancelled, type=" + currentPrinterType);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                    }
+                });
     }
 
     /** 8 寸测试打印（6x8 英寸），使用内置 pic1844x2434 测试图。 */
@@ -227,19 +260,76 @@ public class DNPManager extends PrinterManage {
                     "8 inch test print does not support DNP QW410");
             return;
         }
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x2434);
-        if (bitmap != null) {
-            final Bitmap bitmapToPrint = bitmap;
-            mDNPPrintFactory.setPrintCallbacks(
-                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
-            boolean ok = mDNPPrintFactory.printTestImage8Inch(dnpPrintType, bitmapToPrint, dnpOffsetValue);
-            if (!ok) {
-                recycleBitmapQuietly(bitmapToPrint);
-            }
+        // 将 drawable 复制到缓存文件，使用文件路径提交（避免 Bitmap 回收重试问题）
+        String cachePath = copyDrawableToCache(context, R.drawable.pic1844x2434, "dnp_test_8inch");
+        if (cachePath == null) {
+            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "8寸测试图片加载失败");
+            return;
         }
+        mDNPPrintFactory.enqueuePrint8InchFromFile(cachePath, 1,
+                new DnpSdkCallbackAdapters.OrderAdapter() {
+                    @Override
+                    public void onOrderCompleted(PrintOrder order) {
+                        LLog.i("DNP 8 inch test print completed, type=" + currentPrinterType);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                    }
+
+                    @Override
+                    public void onOrderFailed(PrintOrder order, String message) {
+                        LLog.e("DNP 8 inch test print failed, type=" + currentPrinterType + ", msg=" + message);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                message != null ? message : "打印失败");
+                    }
+
+                    @Override
+                    public void onOrderCancelled(PrintOrder order) {
+                        LLog.e("DNP 8 inch test print cancelled, type=" + currentPrinterType);
+                        mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                    }
+                });
     }
 
     // ========== 查询 ==========
+
+    /**
+     * 将 drawable 资源复制到缓存文件，供文件路径打印使用。
+     *
+     * @return 缓存文件路径，失败返回 null
+     */
+    private static String copyDrawableToCache(Context context, int drawableResId, String fileName) {
+        File cacheDir = new File(context.getCacheDir(), "dnp_print");
+        if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+            return null;
+        }
+        File cacheFile = new File(cacheDir, fileName + ".png");
+        if (cacheFile.isFile() && cacheFile.length() > 0) {
+            return cacheFile.getAbsolutePath();
+        }
+        Bitmap bitmap = null;
+        FileOutputStream out = null;
+        try {
+            bitmap = BitmapFactory.decodeResource(context.getResources(), drawableResId);
+            if (bitmap == null) {
+                return null;
+            }
+            out = new FileOutputStream(cacheFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            return cacheFile.getAbsolutePath();
+        } catch (Exception e) {
+            LLog.e("DNPManager", "copyDrawableToCache failed: " + e.getMessage());
+            //noinspection ResultOfMethodCallIgnored
+            cacheFile.delete();
+            return null;
+        } finally {
+            if (out != null) {
+                try { out.close(); } catch (Exception ignored) {}
+            }
+            if (bitmap != null && !bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
+        }
+    }
 
     @Override
     public void getPrintCount() {
