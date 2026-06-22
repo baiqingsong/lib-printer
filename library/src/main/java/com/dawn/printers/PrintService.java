@@ -84,9 +84,13 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 LLog.i("查询打印机剩余数量，类型：" + event.getPrinterType());
                 getPrintCount(event.getPrinterType());
                 break;
-            case PRINT_IMAGE_TEST:// 打印测试页
-                LLog.i("打印测试页，类型：" + event.getPrinterType());
+            case PRINT_IMAGE_TEST:// 打印测试页（6寸）
+                LLog.i("打印测试页（6寸），类型：" + event.getPrinterType());
                 printTestImage(event.getPrinterType());
+                break;
+            case PRINT_IMAGE_TEST_8_INCH:// 打印 8 寸测试页
+                LLog.i("打印 8 寸测试页，类型：" + event.getPrinterType());
+                printTestImage8Inch(event.getPrinterType());
                 break;
             case PRINT_IMAGE:// 打印图片
                 LLog.i("打印图片，类型：" + event.getPrinterType() + "，图片路径：" + event.getImagePath() + "，打印数量：" + event.getPrintNum() + "，是否切纸：" + event.isCut());
@@ -187,22 +191,29 @@ public class PrintService extends Service implements IPrinterCallbackListener {
     }
 
     /**
-     * 打印测试页
-     * @param printerType 打印机类型
+     * 打印测试页（6寸 / 4x6）
      */
     private void printTestImage(PrinterType printerType){
         switch (printerType){
-            case HITI:// 呈研
-                if(hitiManager != null){
-                    hitiManager.printTest();
-                }
+            case HITI:
+                if(hitiManager != null) hitiManager.printTest();
                 break;
-            case DNP_RX1:// dnp
-            case DNP_620:
-            case DNP_410:
-                if(dnpManager != null){
-                    dnpManager.printTest();
-                }
+            case DNP_RX1: case DNP_620: case DNP_410:
+                if(dnpManager != null) dnpManager.printTest();
+                break;
+        }
+    }
+
+    /**
+     * 打印 8 寸测试页（6x8）
+     */
+    private void printTestImage8Inch(PrinterType printerType){
+        switch (printerType){
+            case HITI:
+                if(hitiManager != null) hitiManager.printTest8Inch();
+                break;
+            case DNP_RX1: case DNP_620: case DNP_410:
+                if(dnpManager != null) dnpManager.printTest8Inch();
                 break;
         }
     }

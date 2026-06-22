@@ -31,6 +31,51 @@ public class DNPManager extends PrinterManage {
         super(context, mPrinterCallbackListener);
     }
 
+    // ========== 统一打印回调（静态内部类，避免匿名类触发 D8 dexing bug）==========
+
+    /**
+     * DNP 打印订单回调，封装 Bitmap 回收和结果通知。
+     * 使用静态内部类替代匿名类，避免 AGP 7.4.2 内置 D8 (R8 4.0.52) 处理
+     * 多嵌套匿名类时的 NPE bug。
+     */
+    private static class DnpPrintCallback extends DnpSdkCallbackAdapters.OrderAdapter {
+        private final Bitmap bitmap;
+        private final PrinterType printerType;
+        private final IPrinterCallbackListener listener;
+
+        DnpPrintCallback(Bitmap bitmap, PrinterType printerType, IPrinterCallbackListener listener) {
+            this.bitmap = bitmap;
+            this.printerType = printerType;
+            this.listener = listener;
+        }
+
+        @Override
+        public void onOrderCompleted(PrintOrder order) {
+            recycleBitmapQuietly(bitmap);
+            if (listener != null) {
+                listener.getPrintResult(printerType, true, "打印成功");
+            }
+        }
+
+        @Override
+        public void onOrderFailed(PrintOrder order, String message) {
+            recycleBitmapQuietly(bitmap);
+            if (listener != null) {
+                listener.getPrintResult(printerType, false, message != null ? message : "打印失败");
+            }
+        }
+
+        @Override
+        public void onOrderCancelled(PrintOrder order) {
+            recycleBitmapQuietly(bitmap);
+            if (listener != null) {
+                listener.getPrintResult(printerType, false, "打印已取消");
+            }
+        }
+    }
+
+    // ========== 初始化 / 状态 ==========
+
     @Override
     public void initPrinter(PrinterType printerType) {
         currentPrinterType = printerType;
@@ -39,18 +84,10 @@ public class DNPManager extends PrinterManage {
                 mDNPPrintFactory = new DNPPrintFactory(context);
             }
             switch (currentPrinterType) {
-                case DNP_RX1:
-                    dnpPrintType = DnpPrinterType.RX1;
-                    break;
-                case DNP_620:
-                    dnpPrintType = DnpPrinterType.DS620;
-                    break;
-                case DNP_410:
-                    dnpPrintType = DnpPrinterType.QW410;
-                    break;
-                default:
-                    dnpPrintType = DnpPrinterType.RX1;
-                    break;
+                case DNP_RX1:  dnpPrintType = DnpPrinterType.RX1;   break;
+                case DNP_620:  dnpPrintType = DnpPrinterType.DS620;  break;
+                case DNP_410:  dnpPrintType = DnpPrinterType.QW410;  break;
+                default:       dnpPrintType = DnpPrinterType.RX1;   break;
             }
 
             DnpPrinterType type = dnpPrintType;
@@ -67,13 +104,10 @@ public class DNPManager extends PrinterManage {
         });
     }
 
-    @Override
-    public void stop() {
-    }
+    @Override public void stop() { }
+    @Override public void getStatus() { }
 
-    @Override
-    public void getStatus() {
-    }
+    // ========== 打印入口 ==========
 
     @Override
     public void startPrint(String imagePath, int printNum, boolean isCut) {
@@ -87,18 +121,15 @@ public class DNPManager extends PrinterManage {
         enqueueDnpPrintOrder();
     }
 
-    /**
-     * 8 寸照片打印（6x8 英寸）。
-     * DNP QW410 不支持 8 寸打印，会直接返回失败回调。
-     */
+    /** 8 寸照片打印（6x8 英寸），QW410 不支持。 */
     public void startPrint8Inch(String imagePath, int printNum) {
         if (mDNPPrintFactory == null) {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
-        // QW410 不支持 8 寸打印
         if (dnpPrintType == DnpPrinterType.QW410) {
-            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "8 inch print does not support DNP QW410");
+            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                    "8 inch print does not support DNP QW410");
             return;
         }
         currentNum = printNum;
@@ -106,14 +137,14 @@ public class DNPManager extends PrinterManage {
         enqueueDnpPrintOrder8Inch();
     }
 
-    /** 8 寸打印：直接使用文件路径提交，避免 Bitmap 编解码开销 */
+    // ========== 打印实现 ==========
+
     private void enqueueDnpPrintOrder() {
         RxTask.runAsync(() -> {
             if (mDNPPrintFactory.getConnection() == null || !mDNPPrintFactory.getConnection().isConnected()) {
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印机未连接");
                 return;
             }
-
             try {
                 if (!mDNPPrintFactory.getConnection().isReady()) {
                     mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印机未就绪");
@@ -131,91 +162,30 @@ public class DNPManager extends PrinterManage {
             }
 
             int copies = Math.max(1, currentNum);
-            LLog.i("DNP 提交打印订单: 份数=" + copies + "（单次 queuePrint + setCopies），偏移=" + dnpOffsetValue + ", 颜色=" + color);
+            LLog.i("DNP 提交打印订单: 份数=" + copies + "，偏移=" + dnpOffsetValue + ", 颜色=" + color);
 
-            // queuePrint 异步处理 Bitmap，禁止在 printImage 返回后立即 recycle，否则 SDK 报
-            // "cannot use a recycled source in createBitmap"
             final Bitmap bitmapToPrint = bitmap;
             mDNPPrintFactory.setPrintCallbacks(
-                    new DnpSdkCallbackAdapters.OrderAdapter() {
-                        @Override
-                        public void onOrderCompleted(PrintOrder order) {
-                            recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
-                        }
-
-                        @Override
-                        public void onOrderFailed(PrintOrder order, String message) {
-                            recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
-                                    message != null ? message : "打印失败");
-                        }
-
-                        @Override
-                        public void onOrderCancelled(PrintOrder order) {
-                            recycleBitmapQuietly(bitmapToPrint);
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
-                        }
-                    },
-                    null
-            );
+                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
 
             boolean ok = mDNPPrintFactory.printImage(context, dnpPrintType, bitmapToPrint, color, dnpOffsetValue,
                     currentIsCut, copies);
             if (!ok) {
                 recycleBitmapQuietly(bitmapToPrint);
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "图像发送失败");
-                return;
             }
         });
     }
 
-    /** 8 寸打印订单提交：使用 enqueuePrint8InchFromFile 文件路径模式 */
     private void enqueueDnpPrintOrder8Inch() {
         RxTask.runAsync(() -> {
             int copies = Math.max(1, currentNum);
             LLog.i("DNP 提交 8 寸打印订单: 份数=" + copies);
 
-            mDNPPrintFactory.setPrintCallbacks(
-                    new DnpSdkCallbackAdapters.OrderAdapter() {
-                        @Override
-                        public void onOrderCompleted(PrintOrder order) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
-                        }
+            DnpPrintCallback cb = new DnpPrintCallback(null, currentPrinterType, mPrinterCallbackListener);
+            mDNPPrintFactory.setPrintCallbacks(cb, null);
 
-                        @Override
-                        public void onOrderFailed(PrintOrder order, String message) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
-                                    message != null ? message : "打印失败");
-                        }
-
-                        @Override
-                        public void onOrderCancelled(PrintOrder order) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
-                        }
-                    },
-                    null
-            );
-
-            // enqueuePrint8InchFromFile 内部会通过 setOrderCallback 设置回调
-            boolean ok = mDNPPrintFactory.enqueuePrint8InchFromFile(currentImagePath, copies,
-                    new DnpSdkCallbackAdapters.OrderAdapter() {
-                        @Override
-                        public void onOrderCompleted(PrintOrder order) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
-                        }
-
-                        @Override
-                        public void onOrderFailed(PrintOrder order, String message) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
-                                    message != null ? message : "打印失败");
-                        }
-
-                        @Override
-                        public void onOrderCancelled(PrintOrder order) {
-                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
-                        }
-                    });
+            boolean ok = mDNPPrintFactory.enqueuePrint8InchFromFile(currentImagePath, copies, cb);
             if (!ok) {
                 mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
                         mDNPPrintFactory.getLastSubmitError());
@@ -223,37 +193,50 @@ public class DNPManager extends PrinterManage {
         });
     }
 
+    // ========== 测试打印 ==========
+
     @Override
     public void printTest() {
         if (mDNPPrintFactory == null) {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x2434);
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x1240);
         if (bitmap != null) {
             final Bitmap bitmapToPrint = bitmap;
-            mDNPPrintFactory.setPrintCallbacks(new DnpSdkCallbackAdapters.OrderAdapter() {
-                @Override
-                public void onOrderCompleted(PrintOrder order) {
-                    recycleBitmapQuietly(bitmapToPrint);
-                }
-
-                @Override
-                public void onOrderFailed(PrintOrder order, String message) {
-                    recycleBitmapQuietly(bitmapToPrint);
-                }
-
-                @Override
-                public void onOrderCancelled(PrintOrder order) {
-                    recycleBitmapQuietly(bitmapToPrint);
-                }
-            }, null);
-            boolean ok = mDNPPrintFactory.printImage(context, dnpPrintType, bitmapToPrint, -1, dnpOffsetValue, false, 1);
+            mDNPPrintFactory.setPrintCallbacks(
+                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, null), null);
+            boolean ok = mDNPPrintFactory.printTestImage(dnpPrintType, bitmapToPrint, dnpOffsetValue);
             if (!ok) {
                 recycleBitmapQuietly(bitmapToPrint);
             }
         }
     }
+
+    /** 8 寸测试打印（6x8 英寸），使用内置 pic1844x2434 测试图。 */
+    public void printTest8Inch() {
+        if (mDNPPrintFactory == null) {
+            LLog.i("打印机未初始化，无法打印");
+            return;
+        }
+        if (dnpPrintType == DnpPrinterType.QW410) {
+            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                    "8 inch test print does not support DNP QW410");
+            return;
+        }
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x2434);
+        if (bitmap != null) {
+            final Bitmap bitmapToPrint = bitmap;
+            mDNPPrintFactory.setPrintCallbacks(
+                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, null), null);
+            boolean ok = mDNPPrintFactory.printTestImage8Inch(dnpPrintType, bitmapToPrint, dnpOffsetValue);
+            if (!ok) {
+                recycleBitmapQuietly(bitmapToPrint);
+            }
+        }
+    }
+
+    // ========== 查询 ==========
 
     @Override
     public void getPrintCount() {
@@ -267,17 +250,15 @@ public class DNPManager extends PrinterManage {
         mPrinterCallbackListener.getPrinterCount(currentPrinterType, printNum, printStatus);
     }
 
+    // ========== 参数设置 ==========
+
     public void setDnpOffsetValue(int offsetValue) {
-        if (offsetValue == 0) {
-            return;
-        }
+        if (offsetValue == 0) return;
         this.dnpOffsetValue = offsetValue;
     }
 
     public void setColor(int color) {
-        if (color == 0) {
-            return;
-        }
+        if (color == 0) return;
         this.color = color;
     }
 }

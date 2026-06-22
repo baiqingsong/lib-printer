@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import com.dawn.printers.IPrinterCallbackListener;
 import com.dawn.printers.PrinterManage;
 import com.dawn.printers.PrinterType;
+import com.dawn.printers.R;
 import com.dawn.printers.internal.RxTask;
 import com.dawn.util_fun.LLog;
 
@@ -173,6 +174,29 @@ public class HITIManager extends PrinterManage {
             return;
         }
         mPrintUtil.PrintTest(context);
+    }
+
+    /**
+     * 8 寸测试打印（6x8 英寸），使用内置 pic1844x2434 测试图。
+     */
+    public void printTest8Inch() {
+        if(mPrintUtil == null){
+            LLog.e("打印机未初始化，无法打印");
+            return;
+        }
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x2434);
+        if (bitmap == null) {
+            LLog.e("8寸测试图片加载失败");
+            return;
+        }
+        boolean result = mPrintUtil.PrintImg(context, PrintConstant.PRINTMODE, PrintConstant.MATTE,
+                (short) PrintConstant.PaperType_8Inch, (short) 1, bitmap);
+        if (!result) {
+            LLog.e("8寸测试打印提交失败");
+        }
+        if (!bitmap.isRecycled()) {
+            bitmap.recycle();
+        }
     }
 
     @Override

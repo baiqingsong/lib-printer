@@ -38,3 +38,14 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+// 规避 AGP 7.4.2 D8(R8 4.0.52)增量 dex 随机 NPE bug：每次 mergeLibDex 前清缓存
+subprojects {
+    afterEvaluate {
+        tasks.matching { it.name.startsWith('mergeLibDex') }.configureEach {
+            doFirst {
+                delete fileTree("${rootProject.projectDir}/library/build/intermediates/runtime_library_classes_dir")
+            }
+        }
+    }
+}

@@ -13,7 +13,8 @@ public class PrintEvent implements Serializable {
         GET_PRINT_COUNT,// 查询剩余打印张数
         PRINT_IMAGE,// 打印图片
         PRINT_IMAGE_8_INCH,// 6x8 inch image
-        PRINT_IMAGE_TEST,// 测试打印图片
+        PRINT_IMAGE_TEST,// 测试打印图片（6寸/4x6）
+        PRINT_IMAGE_TEST_8_INCH,// 测试打印图片（8寸/6x8）
         PARAMETER_SETTING,// 参数设置
     }
 

@@ -139,14 +139,12 @@ public class DNPPrintFactory {
     }
 
     private static PrinterModel toPrinterModel(DnpPrinterType printType) {
-        switch (printType) {
-            case DS620:
-                return PrinterModel.DS620;
-            case QW410:
-                return PrinterModel.QW410;
-            case RX1:
-            default:
-                return PrinterModel.DS_RX1;
+        if (printType == DnpPrinterType.DS620) {
+            return PrinterModel.DS620;
+        } else if (printType == DnpPrinterType.QW410) {
+            return PrinterModel.QW410;
+        } else {
+            return PrinterModel.DS_RX1;
         }
     }
 
@@ -281,6 +279,62 @@ public class DNPPrintFactory {
             return false;
         }
         PrintOptions options = buildPrintOptions(printType, rawType, isCut, copies);
+        if (pendingOrderCallback != null) {
+            connection.setOrderCallback(pendingOrderCallback);
+        }
+        if (pendingPrintCallback != null) {
+            connection.setPrintCallback(pendingPrintCallback);
+        }
+        try {
+            connection.queuePrint(bitmap, options);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 提交测试打印订单（强制 4x6 纸张，适用于 6 寸测试页）。
+     */
+    public boolean printTestImage(DnpPrinterType printType, Bitmap bitmap, int dnpOffsetValue) {
+        if (connection == null || !connection.isConnected() || bitmap == null) {
+            return false;
+        }
+        PrintOptions options = new PrintOptions()
+                .setPaperSize(PaperSize.SIZE_4X6)
+                .setFinishType(FinishType.GLOSSY)
+                .setPrintSpeed(PrintSpeed.STANDARD)
+                .setCutterMode(CutterMode.NORMAL)
+                .setScaleMode(PrintOptions.ScaleMode.FILL_CROP)
+                .setCopies(1);
+        if (pendingOrderCallback != null) {
+            connection.setOrderCallback(pendingOrderCallback);
+        }
+        if (pendingPrintCallback != null) {
+            connection.setPrintCallback(pendingPrintCallback);
+        }
+        try {
+            connection.queuePrint(bitmap, options);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 提交 8 寸测试打印订单（强制 6x8 纸张，不裁切）。
+     */
+    public boolean printTestImage8Inch(DnpPrinterType printType, Bitmap bitmap, int dnpOffsetValue) {
+        if (connection == null || !connection.isConnected() || bitmap == null) {
+            return false;
+        }
+        PrintOptions options = new PrintOptions()
+                .setPaperSize(PaperSize.SIZE_6X8)
+                .setFinishType(FinishType.GLOSSY)
+                .setPrintSpeed(PrintSpeed.STANDARD)
+                .setCutterMode(CutterMode.NORMAL)
+                .setScaleMode(PrintOptions.ScaleMode.FILL_CROP)
+                .setCopies(1);
         if (pendingOrderCallback != null) {
             connection.setOrderCallback(pendingOrderCallback);
         }

@@ -225,11 +225,19 @@ public class PrintFactory {
     }
 
     /**
-     * 打印测试页
+     * 打印测试页（6寸 / 4x6 英寸）
      * @param printerType 打印机类型
      */
     public void printImageTest(PrinterType printerType){
         sendPrintMsg(new PrintEvent(PrintEvent.EventType.PRINT_IMAGE_TEST, printerType));
+    }
+
+    /**
+     * 打印 8 寸测试页（6x8 英寸）
+     * @param printerType 打印机类型
+     */
+    public void printImageTest8Inch(PrinterType printerType){
+        sendPrintMsg(new PrintEvent(PrintEvent.EventType.PRINT_IMAGE_TEST_8_INCH, printerType));
     }
 
     /**
