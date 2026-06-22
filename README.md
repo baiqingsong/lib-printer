@@ -5,7 +5,7 @@ Android 多打印机驱动库，支持 **HiTi（呈研）、DNP（RX1/620/410）
 ## 功能特性
 
 - **多品牌支持**：HiTi 呈研、DNP RX1/DS620/QW410、ICOD 热敏、UV 平板打印机
-- **6寸/8寸双规格**：支持 4x6 和 6x8 两种照片规格，各有测试打印和正常打印接口
+- **6寸/8寸双规格**：支持 6 寸（QW410→4x6 / RX1&DS620→6x4）和 8 寸（RX1&DS620→6x8）两种照片规格，各有测试打印和正常打印接口
 - **内置测试图**：6 寸和 8 寸测试打印均内置测试图片，无需消费方额外准备
 - **进程隔离**：`PrintService` 运行在独立 `:printer` 进程，AIDL 双向通信，打印崩溃不影响主进程
 - **EventBus 回调**：打印初始化、状态查询、打印结果均通过 `ExternalPrintEvent` EventBus 回调
@@ -182,6 +182,9 @@ PrintFactory.getInstance().printImage(PrinterType.UV, "/sdcard/photo.jpg",
 - **HITI（呈研）**：除 `printsdk2.2.1.0-api26.jar`（已内置）外，还需消费方引入 `printerService-release.aar`（内含 `libHiTiApi.so` 和 USB 通信类），并在 AndroidManifest 中声明 `com.hiti.usb.service.ServiceConnector` 和 `com.hiti.usb.service.PrinterService` 两个服务（见上方 AndroidManifest 示例）。
 - **系统要求**：HITI/DNP 打印机通过 USB 通信，需声明 `<uses-feature android:name="android.hardware.usb.host" />`。
 - **8 寸打印（6x8 英寸）**：支持测试打印和正常打印两种模式：
-  - 测试打印：`PrintFactory.printImageTest8Inch()`（内置 `pic1844x2434` 测试图，DNP 强制 `SIZE_6X8`，HITI 使用 `PaperType_8Inch=4`）
-  - 正常打印：`PrintFactory.printImage8Inch()`（传入外部图片路径）
-  - 支持机型：HITI、DNP_RX1、DNP_DS620；QW410 不支持
+  - 6 寸打印：`buildPrintOptions` 对 RX1/DS620 使用 `SIZE_6X4`（6×4 英寸横版），QW410 使用 `SIZE_4X6`（4×6 英寸）
+  - 测试打印：`PrintFactory.printImageTest()`（内置 `pic1844x1240` 测试图）
+  - 正常打印：`PrintFactory.printImage()`（传入外部图片路径）
+  - 8 寸测试打印：`PrintFactory.printImageTest8Inch()`（内置 `pic1844x2434` 测试图，DNP 强制 `SIZE_6X8`，HITI 使用 `PaperType_8Inch=4`）
+  - 8 寸正常打印：`PrintFactory.printImage8Inch()`（传入外部图片路径，DNP 强制 `SIZE_6X8`）
+  - 支持 8 寸的机型：HITI、DNP_RX1、DNP_DS620；QW410 不支持 8 寸
