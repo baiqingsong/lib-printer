@@ -12,6 +12,7 @@ public class PrintEvent implements Serializable {
         GET_PRINTER_STATE,// 查询打印机状态
         GET_PRINT_COUNT,// 查询剩余打印张数
         PRINT_IMAGE,// 打印图片
+        PRINT_IMAGE_8_INCH,// 6x8 inch image
         PRINT_IMAGE_TEST,// 测试打印图片
         PARAMETER_SETTING,// 参数设置
     }
@@ -42,6 +43,15 @@ public class PrintEvent implements Serializable {
         this.imagePath = imagePath;
         this.printNum = printNum;
         this.isCut = isCut;
+    }
+
+    /** 8寸打印事件（无需 isCut 参数，8寸打印始终不裁切） */
+    public PrintEvent(EventType eventType, PrinterType printerType, String imagePath, int printNum) {
+        this.eventType = eventType;
+        this.printerType = printerType;
+        this.imagePath = imagePath;
+        this.printNum = printNum;
+        this.isCut = false;
     }
 
     public PrintEvent(EventType eventType, PrinterType printerType, int offsetX, int color) {

@@ -27,6 +27,7 @@ import com.saika.dnpprintersdk.model.PrinterModel;
 import com.saika.dnpprintersdk.model.PrinterStatus;
 import com.dawn.printers.internal.RxTask;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,6 +43,8 @@ public class DNPPrintFactory {
 
     private PrinterManager printerManager;
     private volatile PrinterConnection connection;
+    /** 最近一次提交打印的错误信息，供调用方诊断 */
+    private volatile String lastSubmitError;
 
 
     public DNPPrintFactory(Context context) {
@@ -127,6 +130,9 @@ public class DNPPrintFactory {
             } catch (ConnectionException e) {
                 notifyFail.run();
             } catch (Exception e) {
+                notifyFail.run();
+            } catch (Throwable t) {
+                // 捕获 Error（如 NoClassDefFoundError），防止 RxJava UndeliverableException 崩溃进程
                 notifyFail.run();
             }
         });
@@ -290,9 +296,10 @@ public class DNPPrintFactory {
     }
 
     private PrintOptions buildPrintOptions(DnpPrinterType printType, int colorPreset, boolean isCut, int copies) {
-        PaperSize paper = printType == DnpPrinterType.QW410 ? PaperSize.SIZE_4X6 : PaperSize.SIZE_6X4;
+        // QW410 仅支持 4x6；其他型号（RX1/DS620）默认使用 6x8
+        PaperSize paper = printType == DnpPrinterType.QW410 ? PaperSize.SIZE_4X6 : PaperSize.SIZE_6X8;
         CutterMode cutter = isCut ? CutterMode.TWO_INCH : CutterMode.NORMAL;
-        PrintSpeed speed = printType == DnpPrinterType.QW410 ? PrintSpeed.STANDARD : PrintSpeed.STANDARD;
+        PrintSpeed speed = PrintSpeed.STANDARD;
 
         int copyCount = Math.max(1, copies);
         PrintOptions options = new PrintOptions()
@@ -308,6 +315,86 @@ public class DNPPrintFactory {
             options.setColorAdjustment(adj);
         }
         return options;
+    }
+
+    /**
+     * 从文件提交 8 寸（6x8）打印订单。使用 SIZE_6X8 纸张，始终不裁切。
+     *
+     * @param path          图片文件路径
+     * @param copies        打印份数
+     * @param orderCallback 订单回调（完成/失败/取消）
+     * @return true 提交成功，false 提交失败（可通过 {@link #getLastSubmitError()} 获取原因）
+     */
+    public boolean enqueuePrint8InchFromFile(String path, int copies, OrderCallback orderCallback) {
+        PrinterConnection c = connection;
+        if (c == null) {
+            lastSubmitError = "DNP连接为空";
+            return false;
+        }
+        if (!c.isConnected()) {
+            lastSubmitError = "DNP连接已断开";
+            return false;
+        }
+        if (path == null || !new File(path).isFile()) {
+            lastSubmitError = "DNP 8寸打印文件不存在：" + path;
+            return false;
+        }
+        try {
+            c.setOrderCallback(orderCallback);
+            PrintOptions options = buildOptions8Inch(copies);
+            c.queuePrint(path, options);
+            lastSubmitError = "";
+            return true;
+        } catch (Exception e) {
+            lastSubmitError = "DNP 8寸提交打印异常：" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    /**
+     * 从 Bitmap 提交 8 寸（6x8）打印订单。使用 SIZE_6X8 纸张，始终不裁切。
+     */
+    public boolean enqueuePrint8InchBitmap(Bitmap bitmap, int copies, OrderCallback orderCallback) {
+        PrinterConnection c = connection;
+        if (c == null) {
+            lastSubmitError = "DNP连接为空";
+            return false;
+        }
+        if (!c.isConnected()) {
+            lastSubmitError = "DNP连接已断开";
+            return false;
+        }
+        if (bitmap == null) {
+            lastSubmitError = "DNP 8寸打印Bitmap为空";
+            return false;
+        }
+        try {
+            c.setOrderCallback(orderCallback);
+            PrintOptions options = buildOptions8Inch(copies);
+            c.queuePrint(bitmap, options);
+            lastSubmitError = "";
+            return true;
+        } catch (Exception e) {
+            lastSubmitError = "DNP 8寸提交Bitmap打印异常：" + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    /** 构建 8 寸打印选项：SIZE_6X8 + 不裁切 */
+    private PrintOptions buildOptions8Inch(int copies) {
+        int copyCount = Math.max(1, copies);
+        return new PrintOptions()
+                .setPaperSize(PaperSize.SIZE_6X8)
+                .setFinishType(FinishType.GLOSSY)
+                .setPrintSpeed(PrintSpeed.STANDARD)
+                .setCutterMode(CutterMode.NORMAL)
+                .setScaleMode(PrintOptions.ScaleMode.FILL_CROP)
+                .setCopies(copyCount);
+    }
+
+    /** 获取最近一次提交失败的错误信息 */
+    public String getLastSubmitError() {
+        return lastSubmitError;
     }
 
     /**

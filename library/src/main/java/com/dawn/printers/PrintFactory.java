@@ -248,6 +248,23 @@ public class PrintFactory {
         sendPrintMsg(lastPrintEvent);
     }
 
+    /**
+     * 打印 8 寸照片（6x8 英寸，始终不裁切）。
+     * 仅 HITI 和 DNP_RX1/DS620 支持，DNP QW410 会返回失败。
+     *
+     * @param printerType 打印机类型
+     * @param imagePath 图片路径
+     * @param printNum 打印数量
+     */
+    public void printImage8Inch(PrinterType printerType, String imagePath, int printNum) {
+        lastPrintTime = System.currentTimeMillis();
+        lastPrintEvent = new PrintEvent(PrintEvent.EventType.PRINT_IMAGE_8_INCH, printerType, imagePath, printNum);
+        LLog.i("发送 8 寸打印指令，图片路径：" + imagePath + "，打印数量：" + printNum);
+        needReprint = true;
+        createPrintCountdown(printNum);
+        sendPrintMsg(lastPrintEvent);
+    }
+
     private Disposable countdownDisposable;
 
     /**
@@ -286,7 +303,8 @@ public class PrintFactory {
      * 打印失败且在 15 秒快速失败窗口内 → 自动重启服务后重试（仅重试一次）。
      */
     private void getPrinterServiceMsg(ExternalPrintEvent event) {
-        if (event.getEvent() == ExternalPrintEvent.EventType.PRINT_IMAGE) {
+        if (event.getEvent() == ExternalPrintEvent.EventType.PRINT_IMAGE
+                || event.getEvent() == ExternalPrintEvent.EventType.PRINT_IMAGE_8_INCH) {
             disposePrintCountdown();
             LLog.i("收到打印结果，状态：" + event.isStatus() + "，信息：" + event.getMsg());
             long elapsed = System.currentTimeMillis() - lastPrintTime;

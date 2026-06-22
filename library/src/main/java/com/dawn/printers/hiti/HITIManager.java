@@ -19,6 +19,8 @@ public class HITIManager extends PrinterManage {
     private PrintUtil mPrintUtil;// 打印机工具类
     private final static int DEFAULT_PRINT_TIME = 20 * 1000;//默认打印时间，单位毫秒
     private final static String STATUS_SUCCESS = "success";//打印成功状态标识
+    private static final int HITI_6X8_WIDTH = 1844;
+    private static final int HITI_6X8_HEIGHT = 2434;
     private int currentStatus;// 当前打印机状态,0 空闲，1 打印中
 
     public HITIManager(Context context, IPrinterCallbackListener mPrinterCallbackListener) {
@@ -93,6 +95,22 @@ public class HITIManager extends PrinterManage {
 
     @Override
     public void startPrint(String imagePath, int printNum, boolean isCut) {
+        int paperType = isCut ? PrintConstant.PaperType_cut : PrintConstant.PaperType;
+        startPrintWithPaperType(imagePath, printNum, paperType);
+    }
+
+    /**
+     * 8寸照片打印（6x8英寸，始终不裁切）。
+     * 与普通打印的区别：使用 PaperType_8Inch=4 而非 PaperType=2
+     */
+    public void startPrint8Inch(String imagePath, int printNum) {
+        startPrintWithPaperType(imagePath, printNum, PrintConstant.PaperType_8Inch);
+    }
+
+    /**
+     * 统一的打印入口，根据 paperType 参数区分普通打印和 8 寸打印。
+     */
+    private void startPrintWithPaperType(String imagePath, int printNum, int paperType) {
         if(mPrintUtil == null){
             LLog.e("打印机未初始化，无法打印");
             return;
@@ -100,14 +118,8 @@ public class HITIManager extends PrinterManage {
         if(currentStatus == 1)
             return;
         currentStatus = 1;
-        final short[] paperType = new short[1];
-        LLog.i("开始打印图片：" + imagePath + "，打印份数：" + printNum + "，是否切纸：" + isCut);
+        LLog.i("Start HITI print, imagePath=" + imagePath + ", printNum=" + printNum + ", paperType=" + paperType);
         RxTask.runAsync(() -> {
-            if (isCut) {
-                paperType[0] = PrintConstant.PaperType_cut;
-            } else {
-                paperType[0] = PrintConstant.PaperType;
-            }
             if (TextUtils.isEmpty(imagePath) || !new File(imagePath).exists()) {
                 LLog.e("当前打印的图片为空或不存在");
                 currentStatus = 0;
@@ -122,7 +134,8 @@ public class HITIManager extends PrinterManage {
                 mPrinterCallbackListener.getPrintResult(PrinterType.HITI, false, "打印的图片Bitmap解析失败");
                 return;
             }
-            boolean result = mPrintUtil.PrintImg(context, PrintConstant.PRINTMODE, PrintConstant.MATTE, paperType[0], (short) printNum, bitmap);
+            int resolvedPaperType = resolvePaperTypeForBitmap(paperType, bitmap);
+            boolean result = mPrintUtil.PrintImg(context, PrintConstant.PRINTMODE, PrintConstant.MATTE, (short) resolvedPaperType, (short) printNum, bitmap);
             if (result) {
                 LLog.i("图片传输成功，开始打印");
                 cycleGetPrintResult(printNum);
@@ -135,6 +148,22 @@ public class HITIManager extends PrinterManage {
                 bitmap.recycle();
             }
         });
+    }
+
+    /**
+     * 当请求裁切模式但图片实际是 8 寸（1844×2434）时，自动改用 8 寸纸型并关闭裁切。
+     * 防止 8 寸图片被误裁切导致输出尺寸错误。
+     */
+    private int resolvePaperTypeForBitmap(int paperType, Bitmap bitmap) {
+        if (paperType == PrintConstant.PaperType_cut
+                && bitmap.getWidth() == HITI_6X8_WIDTH
+                && bitmap.getHeight() == HITI_6X8_HEIGHT) {
+            LLog.w("检测到HITI 8寸图片，关闭裁切并改用8寸纸型，bitmap="
+                    + bitmap.getWidth() + "x" + bitmap.getHeight()
+                    + ", paperType=" + paperType);
+            return PrintConstant.PaperType_8Inch;
+        }
+        return paperType;
     }
 
     @Override

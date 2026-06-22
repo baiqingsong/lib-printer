@@ -32,4 +32,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'org.greenrobot:eventbus:3.3.1'
     implementation project(path: ':library')
+
+    // DNP / HiTi 打印机 SDK（library 中为 compileOnly，app 层以 implementation 打包进 APK）
+    implementation(name: 'DNPPrinterSDK-release', ext: 'aar')
+    implementation(name: 'printerService-release', ext: 'aar')
 }

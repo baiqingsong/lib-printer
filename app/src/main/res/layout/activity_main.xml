@@ -43,7 +43,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="查询剩余纸张"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btn_print_8inch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="打印 8 寸测试页"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#FF5722" />
 
     <TextView
         android:layout_width="wrap_content"

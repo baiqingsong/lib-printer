@@ -1,5 +1,7 @@
 package com.dawn.libprinter;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,6 +18,9 @@ import com.dawn.printers.event.ExternalPrintEvent;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 /**
  * lib-printer 演示 Activity。
@@ -73,6 +78,19 @@ public class MainActivity extends AppCompatActivity {
         btnCount.setOnClickListener(v -> {
             printFactory.getPrinterCount(getSelectedType());
         });
+
+        Button btnPrint8Inch = findViewById(R.id.btn_print_8inch);
+        btnPrint8Inch.setOnClickListener(v -> {
+            PrinterType type = getSelectedType();
+            // 将 8 寸测试图片从 drawable 资源复制到缓存文件
+            String testPath = copyDrawableToCache(R.drawable.pic1844x2434, "test_8inch.jpg");
+            if (testPath == null) {
+                tvStatus.setText("无法准备 8 寸测试图片");
+                return;
+            }
+            tvStatus.setText("正在打印 8 寸测试页... (" + type.name() + ")");
+            printFactory.printImage8Inch(type, testPath, 1);
+        });
     }
 
     private PrinterType getSelectedType() {
@@ -83,6 +101,31 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+    }
+
+    /**
+     * 将 drawable 资源复制到应用缓存目录，返回文件路径。
+     *
+     * @param drawableId drawable 资源 ID（如 R.drawable.pic1844x2434）
+     * @param fileName  目标文件名
+     * @return 文件绝对路径，失败返回 null
+     */
+    private String copyDrawableToCache(int drawableId, String fileName) {
+        try {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), drawableId);
+            if (bitmap == null) return null;
+            File cacheDir = getCacheDir();
+            File outFile = new File(cacheDir, fileName);
+            // 已存在则复用，避免重复写入
+            if (outFile.exists()) return outFile.getAbsolutePath();
+            FileOutputStream fos = new FileOutputStream(outFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos);
+            fos.close();
+            bitmap.recycle();
+            return outFile.getAbsolutePath();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // =========== EventBus 回调：接收打印机服务结果 ===========
@@ -97,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
                 tvStatus.setText("剩余纸张：" + event.getRemainPaper() + " 张");
                 break;
             case PRINT_IMAGE:
+            case PRINT_IMAGE_8_INCH:
                 String result = event.isStatus() ? "打印成功" : "打印失败：" + event.getMsg();
                 tvStatus.setText(result);
                 Toast.makeText(this, result, Toast.LENGTH_SHORT).show();

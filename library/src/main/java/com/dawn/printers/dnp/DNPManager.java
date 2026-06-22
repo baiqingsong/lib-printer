@@ -87,7 +87,26 @@ public class DNPManager extends PrinterManage {
         enqueueDnpPrintOrder();
     }
 
-    /** 解码图片并发起单次 SDK 打印订单（份数由 {@link #currentNum} 经 setCopies 体现）。 */
+    /**
+     * 8 寸照片打印（6x8 英寸）。
+     * DNP QW410 不支持 8 寸打印，会直接返回失败回调。
+     */
+    public void startPrint8Inch(String imagePath, int printNum) {
+        if (mDNPPrintFactory == null) {
+            LLog.i("打印机未初始化，无法打印");
+            return;
+        }
+        // QW410 不支持 8 寸打印
+        if (dnpPrintType == DnpPrinterType.QW410) {
+            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "8 inch print does not support DNP QW410");
+            return;
+        }
+        currentNum = printNum;
+        currentImagePath = imagePath;
+        enqueueDnpPrintOrder8Inch();
+    }
+
+    /** 8 寸打印：直接使用文件路径提交，避免 Bitmap 编解码开销 */
     private void enqueueDnpPrintOrder() {
         RxTask.runAsync(() -> {
             if (mDNPPrintFactory.getConnection() == null || !mDNPPrintFactory.getConnection().isConnected()) {
@@ -151,13 +170,66 @@ public class DNPManager extends PrinterManage {
         });
     }
 
+    /** 8 寸打印订单提交：使用 enqueuePrint8InchFromFile 文件路径模式 */
+    private void enqueueDnpPrintOrder8Inch() {
+        RxTask.runAsync(() -> {
+            int copies = Math.max(1, currentNum);
+            LLog.i("DNP 提交 8 寸打印订单: 份数=" + copies);
+
+            mDNPPrintFactory.setPrintCallbacks(
+                    new DnpSdkCallbackAdapters.OrderAdapter() {
+                        @Override
+                        public void onOrderCompleted(PrintOrder order) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                        }
+
+                        @Override
+                        public void onOrderFailed(PrintOrder order, String message) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                    message != null ? message : "打印失败");
+                        }
+
+                        @Override
+                        public void onOrderCancelled(PrintOrder order) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                        }
+                    },
+                    null
+            );
+
+            // enqueuePrint8InchFromFile 内部会通过 setOrderCallback 设置回调
+            boolean ok = mDNPPrintFactory.enqueuePrint8InchFromFile(currentImagePath, copies,
+                    new DnpSdkCallbackAdapters.OrderAdapter() {
+                        @Override
+                        public void onOrderCompleted(PrintOrder order) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, true, "打印成功");
+                        }
+
+                        @Override
+                        public void onOrderFailed(PrintOrder order, String message) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                                    message != null ? message : "打印失败");
+                        }
+
+                        @Override
+                        public void onOrderCancelled(PrintOrder order) {
+                            mPrinterCallbackListener.getPrintResult(currentPrinterType, false, "打印已取消");
+                        }
+                    });
+            if (!ok) {
+                mPrinterCallbackListener.getPrintResult(currentPrinterType, false,
+                        mDNPPrintFactory.getLastSubmitError());
+            }
+        });
+    }
+
     @Override
     public void printTest() {
         if (mDNPPrintFactory == null) {
             LLog.i("打印机未初始化，无法打印");
             return;
         }
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x1240);
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1844x2434);
         if (bitmap != null) {
             final Bitmap bitmapToPrint = bitmap;
             mDNPPrintFactory.setPrintCallbacks(new DnpSdkCallbackAdapters.OrderAdapter() {

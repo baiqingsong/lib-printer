@@ -1,6 +1,7 @@
 ﻿# ===== Gradle 构建产物 =====
 .gradle/
 **/build/
+!**/build.gradle
 gradle-app.setting
 .gradletasknamecache
 
@@ -21,6 +22,7 @@ local.properties
 
 # ===== 日志 =====
 *.log
+log.txt
 
 # ===== IDE =====
 .idea/
@@ -36,6 +38,9 @@ desktop.ini
 # ===== NDK / CMake =====
 .externalNativeBuild/
 .cxx/
+
+# ===== 本地 Maven 仓库 =====
+.m2/
 
 # ===== 构建捕获 =====
 /captures

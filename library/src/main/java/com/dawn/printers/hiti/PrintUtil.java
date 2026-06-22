@@ -106,7 +106,7 @@ class PrintUtil {
             operation.MATTE = matte;
         else
             operation.MATTE = MATTE;
-        if(paperType == 2 || paperType == 5)
+        if(isSupportedPaperType(paperType))
             operation.PaperType = paperType;
         else
             operation.PaperType = PAPERTYPE;
@@ -142,6 +142,17 @@ class PrintUtil {
         operation.m_strTablesRoot = m_strTablesRoot;
         operation.print("pic1844x1240");
 //        operation.print("test");
+    }
+
+    /**
+     * 判断纸型是否支持（2:4x6, 3:5x7, 4:6x8, 5:4x6裁切, 6:6x6）。
+     */
+    private boolean isSupportedPaperType(short paperType) {
+        return paperType == 2
+                || paperType == 3
+                || paperType == 4
+                || paperType == 5
+                || paperType == 6;
     }
 
     /**

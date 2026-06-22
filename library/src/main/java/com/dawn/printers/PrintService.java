@@ -92,6 +92,10 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 LLog.i("打印图片，类型：" + event.getPrinterType() + "，图片路径：" + event.getImagePath() + "，打印数量：" + event.getPrintNum() + "，是否切纸：" + event.isCut());
                 printImage(event.getPrinterType(), event.getImagePath(), event.getPrintNum(), event.isCut());
                 break;
+            case PRINT_IMAGE_8_INCH:// 打印 8 寸照片
+                LLog.i("打印 8 寸照片，类型：" + event.getPrinterType() + "，图片路径：" + event.getImagePath() + "，打印数量：" + event.getPrintNum());
+                printImage8Inch(event.getPrinterType(), event.getImagePath(), event.getPrintNum());
+                break;
             case PARAMETER_SETTING://参数设置
                 switch (event.getPrinterType()){
                     case DNP_RX1:
@@ -227,6 +231,33 @@ public class PrintService extends Service implements IPrinterCallbackListener {
                 if(dnpManager != null){
                     dnpManager.startPrint(imagePath, printNum, isCut);
 
+                }
+                break;
+        }
+    }
+
+    /**
+     * 打印 8 寸照片（6x8 英寸）
+     * @param printerType 打印机类型
+     * @param imagePath 图片地址
+     * @param printNum 打印数量
+     */
+    private void printImage8Inch(PrinterType printerType, String imagePath, int printNum){
+        switch (printerType){
+            case HITI:// 呈研
+                if(hitiManager != null){
+                    hitiManager.startPrint8Inch(imagePath, printNum);
+                }
+                break;
+            case DNP_RX1:// dnp RX1 / DS620 支持 8 寸
+            case DNP_620:
+                if(dnpManager != null){
+                    dnpManager.startPrint8Inch(imagePath, printNum);
+                }
+                break;
+            case DNP_410:// QW410 不支持 8 寸
+                if(dnpManager != null){
+                    dnpManager.startPrint8Inch(imagePath, printNum);
                 }
                 break;
         }
