@@ -9,6 +9,7 @@ public class ExternalPrintEvent implements Serializable {
         GET_STATUS,// 获取状态
         GET_PRINT_COUNT,// 获取剩余纸张数
         PRINT_IMAGE_TEST,// 打印测试页
+        PRINT_IMAGE_TEST_8_INCH,// 8寸打印测试页
         PRINT_IMAGE,// 打印图片
         PRINT_IMAGE_8_INCH,// 8寸打印图片
         RESTART_SERVICE// 重启打印服务

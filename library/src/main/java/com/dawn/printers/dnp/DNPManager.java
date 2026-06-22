@@ -55,6 +55,7 @@ public class DNPManager extends PrinterManage {
             if (listener != null) {
                 listener.getPrintResult(printerType, true, "打印成功");
             }
+            LLog.i("DNP print order completed, type=" + printerType);
         }
 
         @Override
@@ -63,6 +64,7 @@ public class DNPManager extends PrinterManage {
             if (listener != null) {
                 listener.getPrintResult(printerType, false, message != null ? message : "打印失败");
             }
+            LLog.e("DNP print order failed, type=" + printerType + ", msg=" + message);
         }
 
         @Override
@@ -71,6 +73,7 @@ public class DNPManager extends PrinterManage {
             if (listener != null) {
                 listener.getPrintResult(printerType, false, "打印已取消");
             }
+            LLog.e("DNP print order cancelled, type=" + printerType);
         }
     }
 
@@ -205,7 +208,7 @@ public class DNPManager extends PrinterManage {
         if (bitmap != null) {
             final Bitmap bitmapToPrint = bitmap;
             mDNPPrintFactory.setPrintCallbacks(
-                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, null), null);
+                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
             boolean ok = mDNPPrintFactory.printTestImage(dnpPrintType, bitmapToPrint, dnpOffsetValue);
             if (!ok) {
                 recycleBitmapQuietly(bitmapToPrint);
@@ -228,7 +231,7 @@ public class DNPManager extends PrinterManage {
         if (bitmap != null) {
             final Bitmap bitmapToPrint = bitmap;
             mDNPPrintFactory.setPrintCallbacks(
-                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, null), null);
+                    new DnpPrintCallback(bitmapToPrint, currentPrinterType, mPrinterCallbackListener), null);
             boolean ok = mDNPPrintFactory.printTestImage8Inch(dnpPrintType, bitmapToPrint, dnpOffsetValue);
             if (!ok) {
                 recycleBitmapQuietly(bitmapToPrint);

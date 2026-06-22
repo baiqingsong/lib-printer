@@ -46,6 +46,14 @@
         android:layout_marginBottom="8dp" />
 
     <Button
+        android:id="@+id/btn_print_test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="打印 6 寸测试页"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="#4CAF50" />
+
+    <Button
         android:id="@+id/btn_print_8inch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

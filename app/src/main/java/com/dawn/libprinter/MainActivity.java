@@ -79,6 +79,13 @@ public class MainActivity extends AppCompatActivity {
             printFactory.getPrinterCount(getSelectedType());
         });
 
+        Button btnPrintTest = findViewById(R.id.btn_print_test);
+        btnPrintTest.setOnClickListener(v -> {
+            PrinterType type = getSelectedType();
+            tvStatus.setText("正在打印 6 寸测试页... (" + type.name() + ")");
+            printFactory.printImageTest(type);
+        });
+
         Button btnPrint8Inch = findViewById(R.id.btn_print_8inch);
         btnPrint8Inch.setOnClickListener(v -> {
             PrinterType type = getSelectedType();
@@ -141,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case PRINT_IMAGE:
             case PRINT_IMAGE_8_INCH:
+            case PRINT_IMAGE_TEST:
+            case PRINT_IMAGE_TEST_8_INCH:
                 String result = event.isStatus() ? "打印成功" : "打印失败：" + event.getMsg();
                 tvStatus.setText(result);
                 Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
