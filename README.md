@@ -28,7 +28,7 @@ allprojects {
 
 // 模块 build.gradle
 dependencies {
-    implementation 'com.github.baiqingsong:lib-printer:1.0.18'
+    implementation 'com.github.baiqingsong:lib-printer:1.0.19'
 
     // === 按需添加对应打印机 SDK（从 lib-printer 的 libs 目录获取或向厂商索取）===
     // 呈研 HiTi 打印机（必须，内含 USB 服务和 libHiTiApi.so）
