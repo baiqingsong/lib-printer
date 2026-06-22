@@ -29,6 +29,8 @@ dependencies {
     implementation 'com.github.baiqingsong:lib-printer:1.0.0'
 
     // === 按需添加对应打印机 SDK（从 lib-printer 的 libs 目录获取或向厂商索取）===
+    // 呈研 HiTi 打印机（必须，内含 USB 服务和 libHiTiApi.so）
+    implementation(name: 'printerService-release', ext: 'aar')
     // DNP 打印机
     implementation(name: 'DNPPrinterSDK-release', ext: 'aar')
     // ICOD 热敏打印机
@@ -41,15 +43,25 @@ dependencies {
 
 ### AndroidManifest.xml
 
-在消费方的 AndroidManifest 中声明打印服务：
+在消费方的 AndroidManifest 中声明打印服务和 HITI USB 服务：
 
 ```xml
+<uses-feature android:name="android.hardware.usb.host" android:required="true" />
 <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 
 <application>
     <!-- 打印服务，独立 :printer 进程 -->
     <service
         android:name="com.dawn.printers.PrintService"
+        android:process=":printer" />
+
+    <!-- HITI 打印机 USB 服务（必须，来自 printerService-release.aar） -->
+    <service
+        android:name="com.hiti.usb.service.ServiceConnector"
+        android:process=":printer"
+        tools:ignore="Instantiatable" />
+    <service
+        android:name="com.hiti.usb.service.PrinterService"
         android:process=":printer" />
 </application>
 ```
@@ -95,6 +107,7 @@ public void onPrinterEvent(ExternalPrintEvent event) {
             int remain = event.getRemainPaper();
             break;
         case PRINT_IMAGE:
+        case PRINT_IMAGE_8_INCH:
             boolean ok = event.isStatus();
             String msg = event.getMsg();
             break;
@@ -125,6 +138,9 @@ PrintFactory.getInstance().getPrinterCount(PrinterType.HITI);
 // 普通打印（路径、份数、是否裁剪）
 PrintFactory.getInstance().printImage(PrinterType.HITI, "/sdcard/photo.jpg", 1, false);
 
+// 8 寸照片打印（6x8 英寸，始终不裁切，HITI / DNP_RX1 / DNP_620 支持）
+PrintFactory.getInstance().printImage8Inch(PrinterType.DNP_RX1, "/sdcard/photo_8inch.jpg", 1);
+
 // UV 打印（通道、尺寸、位置）
 PrintFactory.getInstance().printImage(PrinterType.UV, "/sdcard/photo.jpg",
     1 /*channel*/, 100f /*width*/, 150f /*height*/, 0f /*left*/, 0f /*top*/);
@@ -134,7 +150,7 @@ PrintFactory.getInstance().printImage(PrinterType.UV, "/sdcard/photo.jpg",
 
 | 枚举值 | 品牌/型号 | SDK 依赖 |
 | --- | --- | --- |
-| `HITI` | 呈研（HiTi）P520L | `printsdk2.2.1.0-api26.jar`（内置）|
+| `HITI` | 呈研（HiTi）P520L | `printsdk2.2.1.0-api26.jar`（内置）、`printerService-release.aar`（必选）|
 | `DNP_RX1` | DNP RX1 | `DNPPrinterSDK-release.aar`（可选）|
 | `DNP_620` | DNP DS620 | `DNPPrinterSDK-release.aar`（可选）|
 | `DNP_410` | DNP QW410 | `DNPPrinterSDK-release.aar`（可选）|
@@ -146,3 +162,9 @@ PrintFactory.getInstance().printImage(PrinterType.UV, "/sdcard/photo.jpg",
 本库采用 `compileOnly` 依赖策略。核心逻辑内置，各品牌 SDK 由消费方按需自行引入。未引入某品牌 SDK 时，该品牌打印功能不可用但不影响其他品牌。
 
 需要的 SDK 文件在 `library/libs/` 目录中，可直接复制到消费方项目的 `app/libs/` 目录使用。
+
+### 特别注意
+
+- **HITI（呈研）**：除 `printsdk2.2.1.0-api26.jar`（已内置）外，还需消费方引入 `printerService-release.aar`（内含 `libHiTiApi.so` 和 USB 通信类），并在 AndroidManifest 中声明 `com.hiti.usb.service.ServiceConnector` 和 `com.hiti.usb.service.PrinterService` 两个服务（见上方 AndroidManifest 示例）。
+- **系统要求**：HITI/DNP 打印机通过 USB 通信，需声明 `<uses-feature android:name="android.hardware.usb.host" />`。
+- **8 寸打印（6x8 英寸）**：通过 `PrintFactory.printImage8Inch()` 接口，HITI 和 DNP_RX1/DS620 支持，QW410 不支持。
